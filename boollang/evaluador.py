@@ -1,11 +1,13 @@
 """
 Evaluador semántico para expresiones y programas de boollang.
+
+Incluye integración con la traza de evaluación y el formateo de AST (Integrante 6).
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable, Optional, Union
+from typing import Any, Iterable, Optional, Union
 
 from .nodos import (
     Conjuncion,
@@ -138,3 +140,53 @@ def evaluar_programa(
         con_error=con_error,
         resultados=resultados,
     )
+
+
+def evaluar_con_traza(
+    sentencia_o_nodo: Union[Sentencia, ExprBool, str],
+    estilo_arbol: str = "unicode",
+) -> tuple[ResultadoSentencia, Optional[Any]]:
+    """
+    Evalúa una sentencia o nodo AST y genera simultáneamente su traza detallada.
+    """
+    from .traza import trazar_evaluacion
+
+    if isinstance(sentencia_o_nodo, Sentencia):
+        if sentencia_o_nodo.error is not None or sentencia_o_nodo.arbol is None:
+            return evaluar_sentencia(sentencia_o_nodo), None
+        traza = trazar_evaluacion(
+            sentencia_o_nodo.arbol,
+            texto_original=sentencia_o_nodo.texto,
+            estilo_arbol=estilo_arbol,
+        )
+        res = ResultadoSentencia(
+            linea=sentencia_o_nodo.linea,
+            texto=sentencia_o_nodo.texto,
+            valor=traza.resultado_final,
+        )
+        return res, traza
+
+    traza = trazar_evaluacion(sentencia_o_nodo, estilo_arbol=estilo_arbol)
+    res = ResultadoSentencia(
+        linea=1,
+        texto=traza.expresion_original,
+        valor=traza.resultado_final,
+    )
+    return res, traza
+
+
+def formatear_arbol(
+    nodo: ExprBool,
+    con_valores: bool = True,
+    estilo: str = "unicode",
+) -> str:
+    """Formatea el AST en una representación visual jerárquica en texto (Integrante 6)."""
+    from .traza import formatear_arbol as _formatear
+    return _formatear(nodo, con_valores=con_valores, estilo=estilo)
+
+
+def formatear_traza(traza: Any, con_arbol: bool = True) -> str:
+    """Produce una representación en texto de la traza de evaluación (Integrante 6)."""
+    from .traza import formatear_traza as _formatear
+    return _formatear(traza, con_arbol=con_arbol)
+
