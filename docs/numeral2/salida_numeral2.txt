@@ -1,0 +1,295 @@
+==============================================================================
+ Numeral 2 - Derivaciones mas a la izquierda y arboles (Integrante 5)
+==============================================================================
+
+E1 = not (true and false) or false and not false
+------------------------------------------------------------------------------
+Tokens (11): not ( true and false ) or false and not false
+Arboles de derivacion distintos (Integrante 2): 1
+
+Derivacion mas a la izquierda (15 pasos):
+          ExpB
+ 1. P1 => ExpB or TermB
+ 2. P2 => TermB or TermB
+ 3. P4 => FactB or TermB
+ 4. P5 => not FactB or TermB
+ 5. P6 => not ( ExpB ) or TermB
+ 6. P2 => not ( TermB ) or TermB
+ 7. P3 => not ( TermB and FactB ) or TermB
+ 8. P4 => not ( FactB and FactB ) or TermB
+ 9. P7 => not ( true and FactB ) or TermB
+10. P8 => not ( true and false ) or TermB
+11. P3 => not ( true and false ) or TermB and FactB
+12. P4 => not ( true and false ) or FactB and FactB
+13. P8 => not ( true and false ) or false and FactB
+14. P5 => not ( true and false ) or false and not FactB
+15. P8 => not ( true and false ) or false and not false
+
+Producciones usadas: P1x1, P2x2, P3x2, P4x3, P5x2, P6x1, P7x1, P8x3
+
+Arbol de derivacion (Figura 3):
+ExpB
+├── ExpB
+│   └── TermB
+│       └── FactB
+│           ├── not
+│           └── FactB
+│               ├── (
+│               ├── ExpB
+│               │   └── TermB
+│               │       ├── TermB
+│               │       │   └── FactB
+│               │       │       └── true
+│               │       ├── and
+│               │       └── FactB
+│               │           └── false
+│               └── )
+├── or
+└── TermB
+    ├── TermB
+    │   └── FactB
+    │       └── false
+    ├── and
+    └── FactB
+        ├── not
+        └── FactB
+            └── false
+
+Arbol anotado con el valor de cada subexpresion:
+ExpB = true
+├── ExpB = true
+│   └── TermB = true
+│       └── FactB = true
+│           ├── not
+│           └── FactB = false
+│               ├── (
+│               ├── ExpB = false
+│               │   └── TermB = false
+│               │       ├── TermB = true
+│               │       │   └── FactB = true
+│               │       │       └── true
+│               │       ├── and
+│               │       └── FactB = false
+│               │           └── false
+│               └── )
+├── or
+└── TermB = false
+    ├── TermB = false
+    │   └── FactB = false
+    │       └── false
+    ├── and
+    └── FactB = true
+        ├── not
+        └── FactB = false
+            └── false
+
+AST (boollang.nodos) evaluado con boollang.evaluador:
+or   [true]
+├── not   [true]
+│   └── and   [false]
+│       ├── true   [true]
+│       └── false   [false]
+└── and   [false]
+    ├── false   [false]
+    └── not   [true]
+        └── false   [false]
+
+Valor: true
+
+E2 = not not (false or true and not false) and (true or false) and not (true and true)
+------------------------------------------------------------------------------
+Tokens (23): not not ( false or true and not false ) and ( true or false ) and not ( true and true )
+Arboles de derivacion distintos (Integrante 2): 1
+
+Derivacion mas a la izquierda (30 pasos):
+          ExpB
+ 1. P2 => TermB
+ 2. P3 => TermB and FactB
+ 3. P3 => TermB and FactB and FactB
+ 4. P4 => FactB and FactB and FactB
+ 5. P5 => not FactB and FactB and FactB
+ 6. P5 => not not FactB and FactB and FactB
+ 7. P6 => not not ( ExpB ) and FactB and FactB
+ 8. P1 => not not ( ExpB or TermB ) and FactB and FactB
+ 9. P2 => not not ( TermB or TermB ) and FactB and FactB
+10. P4 => not not ( FactB or TermB ) and FactB and FactB
+11. P8 => not not ( false or TermB ) and FactB and FactB
+12. P3 => not not ( false or TermB and FactB ) and FactB and FactB
+13. P4 => not not ( false or FactB and FactB ) and FactB and FactB
+14. P7 => not not ( false or true and FactB ) and FactB and FactB
+15. P5 => not not ( false or true and not FactB ) and FactB and FactB
+16. P8 => not not ( false or true and not false ) and FactB and FactB
+17. P6 => not not ( false or true and not false ) and ( ExpB ) and FactB
+18. P1 => not not ( false or true and not false ) and ( ExpB or TermB ) and FactB
+19. P2 => not not ( false or true and not false ) and ( TermB or TermB ) and FactB
+20. P4 => not not ( false or true and not false ) and ( FactB or TermB ) and FactB
+21. P7 => not not ( false or true and not false ) and ( true or TermB ) and FactB
+22. P4 => not not ( false or true and not false ) and ( true or FactB ) and FactB
+23. P8 => not not ( false or true and not false ) and ( true or false ) and FactB
+24. P5 => not not ( false or true and not false ) and ( true or false ) and not FactB
+25. P6 => not not ( false or true and not false ) and ( true or false ) and not ( ExpB )
+26. P2 => not not ( false or true and not false ) and ( true or false ) and not ( TermB )
+27. P3 => not not ( false or true and not false ) and ( true or false ) and not ( TermB and FactB )
+28. P4 => not not ( false or true and not false ) and ( true or false ) and not ( FactB and FactB )
+29. P7 => not not ( false or true and not false ) and ( true or false ) and not ( true and FactB )
+30. P7 => not not ( false or true and not false ) and ( true or false ) and not ( true and true )
+
+Producciones usadas: P1x2, P2x4, P3x4, P4x6, P5x4, P6x3, P7x4, P8x3
+
+Arbol de derivacion (Figura 3):
+ExpB
+└── TermB
+    ├── TermB
+    │   ├── TermB
+    │   │   └── FactB
+    │   │       ├── not
+    │   │       └── FactB
+    │   │           ├── not
+    │   │           └── FactB
+    │   │               ├── (
+    │   │               ├── ExpB
+    │   │               │   ├── ExpB
+    │   │               │   │   └── TermB
+    │   │               │   │       └── FactB
+    │   │               │   │           └── false
+    │   │               │   ├── or
+    │   │               │   └── TermB
+    │   │               │       ├── TermB
+    │   │               │       │   └── FactB
+    │   │               │       │       └── true
+    │   │               │       ├── and
+    │   │               │       └── FactB
+    │   │               │           ├── not
+    │   │               │           └── FactB
+    │   │               │               └── false
+    │   │               └── )
+    │   ├── and
+    │   └── FactB
+    │       ├── (
+    │       ├── ExpB
+    │       │   ├── ExpB
+    │       │   │   └── TermB
+    │       │   │       └── FactB
+    │       │   │           └── true
+    │       │   ├── or
+    │       │   └── TermB
+    │       │       └── FactB
+    │       │           └── false
+    │       └── )
+    ├── and
+    └── FactB
+        ├── not
+        └── FactB
+            ├── (
+            ├── ExpB
+            │   └── TermB
+            │       ├── TermB
+            │       │   └── FactB
+            │       │       └── true
+            │       ├── and
+            │       └── FactB
+            │           └── true
+            └── )
+
+Arbol anotado con el valor de cada subexpresion:
+ExpB = false
+└── TermB = false
+    ├── TermB = true
+    │   ├── TermB = true
+    │   │   └── FactB = true
+    │   │       ├── not
+    │   │       └── FactB = false
+    │   │           ├── not
+    │   │           └── FactB = true
+    │   │               ├── (
+    │   │               ├── ExpB = true
+    │   │               │   ├── ExpB = false
+    │   │               │   │   └── TermB = false
+    │   │               │   │       └── FactB = false
+    │   │               │   │           └── false
+    │   │               │   ├── or
+    │   │               │   └── TermB = true
+    │   │               │       ├── TermB = true
+    │   │               │       │   └── FactB = true
+    │   │               │       │       └── true
+    │   │               │       ├── and
+    │   │               │       └── FactB = true
+    │   │               │           ├── not
+    │   │               │           └── FactB = false
+    │   │               │               └── false
+    │   │               └── )
+    │   ├── and
+    │   └── FactB = true
+    │       ├── (
+    │       ├── ExpB = true
+    │       │   ├── ExpB = true
+    │       │   │   └── TermB = true
+    │       │   │       └── FactB = true
+    │       │   │           └── true
+    │       │   ├── or
+    │       │   └── TermB = false
+    │       │       └── FactB = false
+    │       │           └── false
+    │       └── )
+    ├── and
+    └── FactB = false
+        ├── not
+        └── FactB = true
+            ├── (
+            ├── ExpB = true
+            │   └── TermB = true
+            │       ├── TermB = true
+            │       │   └── FactB = true
+            │       │       └── true
+            │       ├── and
+            │       └── FactB = true
+            │           └── true
+            └── )
+
+AST (boollang.nodos) evaluado con boollang.evaluador:
+and   [false]
+├── and   [true]
+│   ├── not   [true]
+│   │   └── not   [false]
+│   │       └── or   [true]
+│   │           ├── false   [false]
+│   │           └── and   [true]
+│   │               ├── true   [true]
+│   │               └── not   [true]
+│   │                   └── false   [false]
+│   └── or   [true]
+│       ├── true   [true]
+│       └── false   [false]
+└── not   [false]
+    └── and   [true]
+        ├── true   [true]
+        └── true   [true]
+
+Valor: false
+
+E3 = (true or not false) and not or false
+------------------------------------------------------------------------------
+Tokens: ( true or not false ) and not or false
+Errores lexicos: 0 (todas las palabras son reservadas validas)
+
+Derivacion mas a la izquierda del prefijo viable (12 pasos):
+          ExpB
+ 1. P2 => TermB
+ 2. P3 => TermB and FactB
+ 3. P4 => FactB and FactB
+ 4. P6 => ( ExpB ) and FactB
+ 5. P1 => ( ExpB or TermB ) and FactB
+ 6. P2 => ( TermB or TermB ) and FactB
+ 7. P4 => ( FactB or TermB ) and FactB
+ 8. P7 => ( true or TermB ) and FactB
+ 9. P4 => ( true or FactB ) and FactB
+10. P5 => ( true or not FactB ) and FactB
+11. P8 => ( true or not false ) and FactB
+12. P5 => ( true or not false ) and not FactB
+
+Prefijo aceptado: ( true or not false ) and not
+Token de bloqueo: 'or' (token #9, columna 29)
+PRIMEROS(FactB) = {(, false, not, true}   ->  'or' no pertenece
+ULTIMOS(ExpB)   = {), false, true}       ->  "not" no pertenece
+Parser LALR(1): SyntaxError: token inesperado 'or' (col 29)
+Arboles de derivacion de E3: 0  (E3 no pertenece a L(G))

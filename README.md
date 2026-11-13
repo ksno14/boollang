@@ -102,6 +102,18 @@ python -m pytest tests/test_gramatica.py -v
 
 ---
 
+## Numeral 2: Tres Expresiones, Derivaciones y Árboles
+
+- `docs/numeral2/derivaciones.md`: dos expresiones válidas (E1 → `true`, E2 → `false`) y una inválida (E3, se bloquea en `not or`, columna 29). Incluye la derivación más a la izquierda paso a paso, el árbol sintáctico, el AST evaluado y la argumentación formal de por qué se aceptan o se rechazan.
+- `docs/numeral2/derivaciones.py`: genera y comprueba todo lo anterior reutilizando el lexer, la verificación del Numeral 1 y el evaluador del proyecto.
+
+```bash
+python docs/numeral2/derivaciones.py
+python -m pytest tests/test_numeral2.py -v
+```
+
+---
+
 ## Ejemplo de Uso en Código
 
 ```python
