@@ -1,12 +1,12 @@
-# boollang — Analizador Léxico para Expresiones Booleanas
+# boollang — Lenguaje para Expresiones Booleanas (Tarea 36)
 
-Implementación del analizador léxico para el lenguaje de expresiones booleanas `boollang`, construido utilizando **PLY (Python Lex-Yacc)** (`ply.lex`).
+Implementación del analizador léxico, gramática formal, evaluador semántico, estructura del Árbol de Sintaxis Abstracta (AST), traza de evaluación por precedencia y suite de pruebas para el lenguaje de expresiones booleanas `boollang`, construido utilizando **Python** y **PLY (Python Lex-Yacc)**.
 
 ---
 
 ## Características y Funcionalidades
 
-El analizador léxico procesa cadenas de texto y archivos con expresiones booleanas, identificando tokens válidos, manejando comentarios, controlando la posición en línea/columna y recuperándose de errores léxicos sin detener el análisis.
+El procesador de expresiones booleanas procesa cadenas de texto y archivos con expresiones booleanas, identificando tokens válidos, manejando comentarios, controlando la posición en línea/columna, construyendo el AST, evaluando semánticamente y reportando errores léxicos o sintácticos con recuperación por línea.
 
 ### 1. Tokens Soportados
 El analizador reconoce los siguientes tipos de tokens:
@@ -55,12 +55,25 @@ El analizador reconoce los siguientes tipos de tokens:
 boollang/
 ├── boollang/
 │   ├── __init__.py        # Exporta componentes principales del paquete
-│   └── lexer.py           # Reglas léxicas, tokens, errores y utilidades
+│   ├── __main__.py        # CLI: python -m boollang fuente.bool -o destino.out [--traza]
+│   ├── archivo.py         # Lectura .bool, conciliación de errores y escritura .out
+│   ├── evaluador.py       # Evaluador semántico booleano y resumen
+│   ├── lexer.py           # Reglas léxicas, tokens, errores y utilidades (Integrante 1)
+│   ├── nodos.py           # Nodos del Árbol de Sintaxis Abstracta (AST) (Integrante 6)
+│   └── traza.py           # Formateador de árbol y traza por precedencia (Integrante 6)
+├── docs/
+│   ├── numeral1/          # Verificación formal GLC, E-BNF y parser.out (Integrante 2)
+│   └── numeral2/          # Derivaciones, árboles y bloqueo de E3 (Integrante 5)
 ├── tests/
 │   ├── __init__.py
-│   └── test_lexer.py      # Suite de pruebas unitarias con pytest
+│   ├── test_evaluador.py  # Pruebas del evaluador, CLI y archivo (Integrante 4)
+│   ├── test_gramatica.py  # Pruebas de verificación de la GLC (Integrante 2)
+│   ├── test_lexer.py      # Pruebas unitarias del lexer (Integrante 1)
+│   ├── test_numeral2.py   # Pruebas de derivaciones del Numeral 2 (Integrante 5)
+│   └── test_traza.py      # Pruebas de AST, traza de evaluación y CLI (Integrante 6)
 ├── .gitignore             # Archivos y carpetas ignorados por git
-├── README.md              # Documentación técnica del módulo
+├── gramatica.ebnf         # Gramática oficial en notación E-BNF (Figura 2)
+├── README.md              # Documentación técnica integral
 └── requirements.txt       # Dependencias necesarias (ply, pytest)
 ```
 
@@ -78,9 +91,9 @@ pip install -r requirements.txt
 
 ---
 
-## Ejecución de Pruebas Unitarias
+## Ejecución de la Suite Completa de Pruebas
 
-La suite de pruebas cubre reconocimiento de tokens, cálculo de líneas y columnas, comentarios de una y varias líneas, recuperación ante errores léxicos y el caso del escenario de recuperación oficial:
+La suite de pruebas contiene **97 pruebas unitarias automatizadas** que cubren el lexer, gramática formal, derivaciones del Numeral 2, evaluador, AST, traza y CLI:
 
 ```bash
 python -m pytest -v
@@ -114,38 +127,117 @@ python -m pytest tests/test_numeral2.py -v
 
 ---
 
-## Ejemplo de Uso en Código
+## Integrante 6: Estructura del Árbol (AST) y Traza de Evaluación
 
-```python
-from boollang.lexer import tokenize, build_lexer, find_column
+El módulo desarrollado por el **Integrante 6** comprende:
+1. **Definición de nodos del AST (`boollang/nodos.py`):**
+   - `Constante(valor: bool)`: nodo hoja literal (`true` o `false`).
+   - `Negacion(op: ExprBool)`: nodo unario para operador lógico `not`.
+   - `Conjuncion(izq: ExprBool, der: ExprBool)`: nodo binario para operador lógico `and`.
+   - `Disyuncion(izq: ExprBool, der: ExprBool)`: nodo binario para operador lógico `or`.
+   - `Sentencia(linea, texto, arbol=None, error=None)` y `Programa(sentencias)`.
+   - Propiedades de introspección: `hijos()`, `nombre_op`, `prioridad` formal (`not`: 3 > `and`: 2 > `or`: 1 > `const`: 4) y `a_texto()` (reconstrucción textual con uso mínimo de paréntesis según asociatividad a la izquierda).
 
-codigo = """// Prueba de expresiones booleanas
-true and false;
-true and TRUE
-"""
+2. **Formateador visual en texto (`formatear_arbol` en `boollang/traza.py`):**
+   - Muestra el árbol jerárquico usando caracteres de caja Unicode (`├──`, `└──`, `│   `) o ASCII (`|--`, `\--`).
+   - Anota opcionalmente el valor booleano evaluado `[true]` o `[false]` de cada subárbol.
+   - Ejemplo para E1 (`not (true and false) or false and not false`):
+     ```text
+     or   [true]
+     ├── not   [true]
+     │   └── and   [false]
+     │       ├── true   [true]
+     │       └── false   [false]
+     └── and   [false]
+         ├── false   [false]
+         └── not   [true]
+             └── false   [false]
+     ```
 
-tokens, errores = tokenize(codigo)
+3. **Motor de traza paso a paso (`trazar_evaluacion` y `formatear_traza`):**
+   - Modela la evaluación reducible paso a paso respetando estrictamente:
+     * Los subárboles entre paréntesis primero (FactB).
+     * Precedencia de operadores dentro de cada nivel: `not` > `and` > `or`.
+     * Asociatividad a la izquierda para operadores de igual precedencia.
+   - Cada paso registra: número de paso, operador aplicado, subexpresión evaluada, valor booleano resultante y estado simplificado de la expresión completa.
 
-# Visualizar tokens obtenidos
-for tok in tokens:
-    print(f"Línea {tok.lineno} -> {tok.type} ({tok.value})")
+4. **Verificación automatizada del Numeral 2 (`verificar_numeral2`):**
+   - Comprueba automáticamente las 3 expresiones del Numeral 2 (E1, E2 y E3):
+     * **E1:** Válida, evalúa a `true` en 5 pasos de reducción.
+     * **E2:** Válida, evalúa a `false` en 10 pasos de reducción.
+     * **E3:** Inválida, detecta formalmente el error de sintaxis en el token `'or'` en la columna 29.
 
-# Visualizar errores léxicos detectados
-for err in errores:
-    print(f"Línea {err.line} -> {err.message}")
+5. **Opciones avanzadas en la Interfaz CLI (`boollang/__main__.py`):**
+   - **Opción `--traza` (`-t`):** Imprime el AST visual y el desglose de pasos al procesar un archivo o expresión.
+   - **Opción `-e` / `--expresion`:** Evalúa directamente una expresión desde la terminal.
+   - **Opción `--numeral2`:** Ejecuta la verificación completa del Numeral 2 con sus árboles y trazas.
+
+### Ejemplos de uso del CLI con `--traza` y `--numeral2`:
+
+```bash
+# 1. Evaluar expresión directa con traza completa y árbol:
+python -m boollang -e "not (true and false) or false and not false" --traza
+
+# 2. Verificar automáticamente las 3 expresiones del Numeral 2:
+python -m boollang --numeral2
+
+# 3. Procesar archivo .bool con generación de .out y traza detallada en consola:
+python -m boollang archivo.bool -o resultado.out --traza
 ```
 
-Salida esperada:
+Salida generada por `--traza`:
 ```text
-Línea 2 -> TRUE (true)
-Línea 2 -> AND (and)
-Línea 2 -> FALSE (false)
-Línea 2 -> PUNTOYCOMA (;)
-Línea 2 -> NEWLINE (
-)
-Línea 3 -> TRUE (true)
-Línea 3 -> AND (and)
-Línea 3 -> NEWLINE (
-)
-Línea 3 -> ERROR lexico (col 10): palabra no valida 'TRUE'
+==============================================================================
+Traza de Evaluacion (Precedencia: not > and > or)
+==============================================================================
+Expresion original: not (true and false) or false and not false
+Resultado final:    true
+
+Arbol Sintactico (AST) con valores por subexpresion:
+or   [true]
+├── not   [true]
+│   └── and   [false]
+│       ├── true   [true]
+│       └── false   [false]
+└── and   [false]
+    ├── false   [false]
+    └── not   [true]
+        └── false   [false]
+
+Pasos de reduccion (5 pasos):
+  1. [AND] true and false => false
+     Estado: not false or false and not false
+  2. [NOT] not false => true
+     Estado: true or false and not false
+  3. [NOT] not false => true
+     Estado: true or false and true
+  4. [AND] false and true => false
+     Estado: true or false
+  5. [OR ] true or false => true
+     Estado: true
+==============================================================================
+```
+
+### Pruebas unitarias del Integrante 6:
+```bash
+python -m pytest tests/test_traza.py -v
+```
+
+---
+
+## Ejemplo de Uso en Código Python
+
+```python
+from boollang import parsear_expresion, formatear_arbol, trazar_evaluacion, formatear_traza
+
+# 1. Analizar expresión y construir AST
+expresion = "not (true and false) or false and not false"
+arbol = parsear_expresion(expresion)
+
+# 2. Formatear visualmente el AST con sus valores
+print(formatear_arbol(arbol, con_valores=True))
+
+# 3. Generar la traza de evaluación paso a paso
+traza = trazar_evaluacion(arbol)
+print(formatear_traza(traza))
 ```
