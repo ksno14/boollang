@@ -6,7 +6,7 @@ Incluye integración con la traza de evaluación y el formateo de AST (Integrant
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Iterable, Optional, Union
 
 from .nodos import (
@@ -54,12 +54,18 @@ def evaluar(nodo: ExprBool) -> bool:
 
 @dataclass(frozen=True)
 class ResultadoSentencia:
-    """Resultado de evaluar una sentencia individual (valor booleano o error)."""
+    """Resultado de evaluar una sentencia individual (valor booleano o error).
+
+    El campo `arbol` transporta opcionalmente el AST de la expresión para que
+    los consumidores (p. ej. la opción `--traza`) puedan reutilizarlo sin
+    volver a parsear. No participa en la comparación ni en el `repr`.
+    """
 
     linea: int
     texto: str
     valor: Optional[bool] = None
     error: Optional[str] = None
+    arbol: Optional[ExprBool] = field(default=None, compare=False, repr=False)
 
     @property
     def es_error(self) -> bool:
@@ -109,6 +115,7 @@ def evaluar_sentencia(sentencia: Sentencia) -> ResultadoSentencia:
         linea=sentencia.linea,
         texto=sentencia.texto,
         valor=valor,
+        arbol=sentencia.arbol,
     )
 
 

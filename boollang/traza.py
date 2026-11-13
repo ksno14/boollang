@@ -31,14 +31,6 @@ class PasoTraza:
     resultado: bool
     expresion_actual: str
 
-    def formatear(self) -> str:
-        """Formatea el paso en una línea descriptiva con su estado resultante."""
-        val_str = formatear_booleano(self.resultado)
-        return (
-            f" {self.numero:2d}. [{self.operador:3s}] {self.subexpresion} => {val_str}\n"
-            f"     Estado: {self.expresion_actual}"
-        )
-
 
 @dataclass(frozen=True)
 class TrazaEvaluacion:
@@ -73,7 +65,13 @@ def formatear_arbol(
         prefijo: Cadena interna de indentación para recursión.
         ultimo: Booleano que indica si es el último hijo en su nivel.
         raiz: Booleano que indica si es la raíz del árbol.
+
+    Lanza:
+        ValueError: Si `estilo` no es "unicode" ni "ascii".
     """
+    if estilo not in ("unicode", "ascii"):
+        raise ValueError(f"estilo no soportado: {estilo!r} (use 'unicode' o 'ascii')")
+
     if estilo == "ascii":
         rama_mid = "|-- "
         rama_end = "\\-- "
@@ -207,6 +205,13 @@ def parsear_expresion(texto: str) -> ExprBool:
     Analiza una expresión booleana individual según la gramática de la Figura 3
     y construye directamente su Árbol de Sintaxis Abstracta (AST).
     Lanza `SyntaxError` si la expresión no pertenece al lenguaje.
+
+    Nota: esta es una implementación autónoma y equivalente de la Figura 3
+    usada para las opciones `-e` / `--numeral2` y como respaldo en `--traza`
+    sobre archivos. El analizador oficial del proyecto es el parser LALR(1)
+    con `ply.yacc` (Integrante 3, `boollang/parser.py`, pendiente de integración);
+    cuando esté disponible, estas rutas deberían delegar en él en lugar de
+    mantener dos implementaciones paralelas de la gramática.
     """
     tokens, errores_lex = tokenize(texto)
     if errores_lex:
@@ -410,7 +415,7 @@ def formatear_traza(traza: TrazaEvaluacion, con_arbol: bool = True) -> str:
     return "\n".join(lineas)
 
 
-def verificar_numeral2(con_traza: bool = True) -> dict[str, Any]:
+def verificar_numeral2(estilo_arbol: str = "unicode") -> dict[str, Any]:
     """
     Verifica automáticamente las 3 expresiones del Numeral 2 (E1, E2 y E3).
 
@@ -418,8 +423,16 @@ def verificar_numeral2(con_traza: bool = True) -> dict[str, Any]:
     - E2: 'not not (false or true and not false) and (true or false) and not (true and true)' (válida, evalúa a false)
     - E3: '(true or not false) and not or false' (inválida, error sintáctico en token 'or', col 29)
 
+    Parámetros:
+        estilo_arbol: "unicode" o "ascii" para el árbol embebido en cada traza.
+
     Retorna un diccionario estructurado con los resultados, trazas y mensajes.
     """
+    if estilo_arbol not in ("unicode", "ascii"):
+        raise ValueError(
+            f"estilo_arbol no soportado: {estilo_arbol!r} (use 'unicode' o 'ascii')"
+        )
+
     e1_texto = "not (true and false) or false and not false"
     e2_texto = (
         "not not (false or true and not false) and (true or false) and not (true and true)"
@@ -429,7 +442,7 @@ def verificar_numeral2(con_traza: bool = True) -> dict[str, Any]:
     resultados: dict[str, Any] = {}
 
     # E1
-    traza_e1 = trazar_evaluacion(e1_texto)
+    traza_e1 = trazar_evaluacion(e1_texto, estilo_arbol=estilo_arbol)
     resultados["E1"] = {
         "texto": e1_texto,
         "valida": True,
@@ -441,7 +454,7 @@ def verificar_numeral2(con_traza: bool = True) -> dict[str, Any]:
     }
 
     # E2
-    traza_e2 = trazar_evaluacion(e2_texto)
+    traza_e2 = trazar_evaluacion(e2_texto, estilo_arbol=estilo_arbol)
     resultados["E2"] = {
         "texto": e2_texto,
         "valida": True,

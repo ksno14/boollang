@@ -55,7 +55,7 @@ El analizador reconoce los siguientes tipos de tokens:
 boollang/
 ├── boollang/
 │   ├── __init__.py        # Exporta componentes principales del paquete
-│   ├── __main__.py        # CLI: python -m boollang fuente.bool -o destino.out [--traza]
+│   ├── __main__.py        # CLI: python -m boollang fuente.bool -o destino.out [--traza] [--ascii]
 │   ├── archivo.py         # Lectura .bool, conciliación de errores y escritura .out
 │   ├── evaluador.py       # Evaluador semántico booleano y resumen
 │   ├── lexer.py           # Reglas léxicas, tokens, errores y utilidades (Integrante 1)
@@ -93,7 +93,7 @@ pip install -r requirements.txt
 
 ## Ejecución de la Suite Completa de Pruebas
 
-La suite de pruebas contiene **97 pruebas unitarias automatizadas** que cubren el lexer, gramática formal, derivaciones del Numeral 2, evaluador, AST, traza y CLI:
+La suite de pruebas contiene **100 pruebas unitarias automatizadas** que cubren el lexer, gramática formal, derivaciones del Numeral 2, evaluador, AST, traza y CLI:
 
 ```bash
 python -m pytest -v
@@ -168,7 +168,8 @@ El módulo desarrollado por el **Integrante 6** comprende:
      * **E3:** Inválida, detecta formalmente el error de sintaxis en el token `'or'` en la columna 29.
 
 5. **Opciones avanzadas en la Interfaz CLI (`boollang/__main__.py`):**
-   - **Opción `--traza` (`-t`):** Imprime el AST visual y el desglose de pasos al procesar un archivo o expresión.
+   - **Opción `--traza` (`-t`):** Imprime el AST visual y el desglose de pasos al procesar un archivo o expresión. Reutiliza el AST ya construido durante el análisis del archivo (sin reparsear cada línea); si no está disponible, recurre a un reparseo como respaldo.
+   - **Opción `--ascii`:** Fuerza la salida del árbol en ASCII puro (`|--`, `\--`, `|`). Si no se indica, la CLI elige automáticamente entre `unicode` y `ascii` según la codificación de la consola (p. ej. `cp1252` en Windows cae a ASCII para evitar `UnicodeEncodeError`).
    - **Opción `-e` / `--expresion`:** Evalúa directamente una expresión desde la terminal.
    - **Opción `--numeral2`:** Ejecuta la verificación completa del Numeral 2 con sus árboles y trazas.
 

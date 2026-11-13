@@ -3,6 +3,8 @@ Punto de entrada CLI para ejecutar `python -m boollang <fuente.bool> -o <destino
 
 Soporta opciones avanzadas implementadas por el Integrante 6:
 - `--traza` (`-t`): Muestra el AST formateado en texto y la traza de evaluación paso a paso.
+- `--ascii`: Fuerza el árbol en ASCII puro (la consola lo elige automáticamente
+  cuando no soporta los bordes Unicode, p. ej. cp1252 en Windows).
 - `--expresion` (`-e`): Evalúa una expresión booleana directamente desde la línea de comandos.
 - `--numeral2`: Verifica de forma automática las 3 expresiones del Numeral 2 con árbol y traza.
 """
@@ -15,13 +17,34 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 from .archivo import ParserNoDisponibleError, procesar_archivo
-from .evaluador import formatear_booleano
+from .evaluador import evaluar_con_traza, formatear_booleano
+from .nodos import Sentencia
 from .traza import (
     formatear_traza,
     parsear_expresion,
     trazar_evaluacion,
     verificar_numeral2,
 )
+
+_CARACTERES_ARBOL_UNICODE = "├└│─"
+
+
+def _estilo_para(stream) -> str:
+    """Elige 'unicode' o 'ascii' para el árbol según lo que soporte `stream`.
+
+    Las consolas Windows con codificación heredada (p. ej. cp1252) no pueden
+    imprimir los bordes `├──` / `└──` sin lanzar UnicodeEncodeError, así que
+    se cae automáticamente a ASCII. Si la codificación es desconocida (p. ej.
+    streams capturados en pruebas), se conserva unicode.
+    """
+    encoding = getattr(stream, "encoding", None)
+    if encoding is None:
+        return "unicode"
+    try:
+        _CARACTERES_ARBOL_UNICODE.encode(encoding)
+    except (UnicodeEncodeError, LookupError):
+        return "ascii"
+    return "unicode"
 
 
 def construir_argparser() -> argparse.ArgumentParser:
@@ -51,6 +74,12 @@ def construir_argparser() -> argparse.ArgumentParser:
         help="Muestra el árbol sintáctico (AST) y la traza detallada de evaluación paso a paso por precedencia.",
     )
     parser.add_argument(
+        "--ascii",
+        dest="ascii",
+        action="store_true",
+        help="Fuerza la salida del árbol en ASCII puro (|--, \\--, |), sin caracteres Unicode.",
+    )
+    parser.add_argument(
         "-e",
         "--expresion",
         dest="expresion",
@@ -71,10 +100,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     """Ejecuta la interfaz CLI de boollang y retorna el código de salida."""
     argparser = construir_argparser()
     args = argparser.parse_args(argv)
+    estilo = "ascii" if args.ascii else _estilo_para(sys.stdout)
 
     # 1. Modo Verificación Numeral 2
     if args.numeral2:
-        resultados = verificar_numeral2(con_traza=True)
+        resultados = verificar_numeral2(estilo_arbol=estilo)
         print("=" * 78)
         print(" VERIFICACIÓN AUTOMATIZADA — NUMERAL 2 (Integrante 6 / Tarea 36)")
         print("=" * 78)
@@ -98,7 +128,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.expresion is not None:
         try:
             if args.traza:
-                traza = trazar_evaluacion(args.expresion)
+                traza = trazar_evaluacion(args.expresion, estilo_arbol=estilo)
                 print(formatear_traza(traza))
             else:
                 arbol = parsear_expresion(args.expresion)
@@ -143,10 +173,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             for res in resumen.resultados:
                 if not res.es_error:
                     try:
-                        traza = trazar_evaluacion(res.texto)
+                        if res.arbol is not None:
+                            # Reutiliza el AST construido durante el análisis
+                            sentencia = Sentencia(
+                                linea=res.linea, texto=res.texto, arbol=res.arbol
+                            )
+                            _, traza = evaluar_con_traza(sentencia, estilo_arbol=estilo)
+                        else:
+                            # Respaldo: el AST no está disponible, reparsear el texto
+                            traza = trazar_evaluacion(res.texto, estilo_arbol=estilo)
                         print(f"\n[Línea {res.linea}] {res.texto}")
                         print(formatear_traza(traza))
-                    except Exception as exc:
+                    except SyntaxError as exc:
                         print(f"[Línea {res.linea}] No fue posible generar traza: {exc}")
                 else:
                     print(f"\n[Línea {res.linea}] {res.texto}")

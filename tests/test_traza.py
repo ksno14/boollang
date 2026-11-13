@@ -150,6 +150,10 @@ class TestFormateadorArbol:
         )
         assert salida == esperado
 
+    def test_formatear_arbol_estilo_invalido(self):
+        with pytest.raises(ValueError, match="estilo no soportado"):
+            formatear_arbol(Constante(True), estilo="emoji")
+
 
 class TestMotorTrazaEvaluacion:
     """Pruebas del motor de traza paso a paso según precedencia de operadores."""
@@ -228,7 +232,7 @@ class TestVerificacionNumeral2:
     """Pruebas para la verificación automatizada de las 3 expresiones del Numeral 2."""
 
     def test_numeral2_completo(self):
-        resultados = verificar_numeral2(con_traza=True)
+        resultados = verificar_numeral2()
 
         # E1
         e1 = resultados["E1"]
@@ -316,3 +320,38 @@ class TestCLIIntegrante6:
         assert "TRAZA DETALLADA DE EVALUACIÓN" in salida
         assert "[Línea 1] not false and true" in salida
         assert "not false => true" in salida
+
+    def test_cli_archivo_con_traza_reutiliza_ast(self, capsys):
+        from boollang.evaluador import ResumenEvaluacion, ResultadoSentencia
+
+        arbol = parsear_expresion("not false and true")
+
+        def fake_procesar(ruta_in, ruta_out):
+            res = ResultadoSentencia(
+                linea=7,
+                texto="not false and true",
+                valor=True,
+                arbol=arbol,
+            )
+            return ResumenEvaluacion(
+                procesadas=1,
+                evaluadas=1,
+                con_error=0,
+                resultados=[res],
+            )
+
+        with patch("boollang.__main__.procesar_archivo", side_effect=fake_procesar):
+            codigo = main(["fake.bool", "--traza"])
+
+        assert codigo == 0
+        salida = capsys.readouterr().out
+        assert "[Línea 7] not false and true" in salida
+        assert "not false => true" in salida
+
+    def test_cli_numeral2_ascii(self, capsys):
+        codigo = main(["--numeral2", "--ascii"])
+        assert codigo == 0
+        salida = capsys.readouterr().out
+        assert "|--" in salida
+        assert "├" not in salida
+        assert "└" not in salida
