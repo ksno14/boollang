@@ -1,0 +1,120 @@
+========================================================================
+ Numeral 1 - Verificacion de la GLC de la Figura 3 (boollang)
+========================================================================
+V = {ExpB, FactB, TermB}
+Sigma = {(, ), and, false, not, or, true}
+S = ExpB
+P:
+  P1: ExpB -> ExpB or TermB
+  P2: ExpB -> TermB
+  P3: TermB -> TermB and FactB
+  P4: TermB -> FactB
+  P5: FactB -> not FactB
+  P6: FactB -> ( ExpB )
+  P7: FactB -> true
+  P8: FactB -> false
+
+[1] GLC bien formada
+  OK: todo lado izquierdo es un unico no terminal y todo lado derecho esta en (V ∪ Sigma)+
+
+[2] Simbolos productivos
+  Prod_1 = {FactB}
+  Prod_2 = {FactB, TermB}
+  Prod_3 = {ExpB, FactB, TermB}
+  Punto fijo: {ExpB, FactB, TermB} == V  ->  OK
+
+[3] Simbolos alcanzables
+  Alc_0 = {ExpB}
+  Alc_1 = {ExpB, TermB, or}
+  Alc_2 = {ExpB, FactB, TermB, and, or}
+  Alc_3 = {ExpB, FactB, TermB, (, ), and, false, not, or, true}
+  Punto fijo == V ∪ Sigma  ->  OK
+
+[4] Producciones epsilon
+  Producciones A -> ε: 0   Anulables: {}  ->  OK
+
+[5] Ciclos (A =>+ A)
+  Pares unitarios (A =>+ B): (ExpB,FactB), (ExpB,TermB), (TermB,FactB)
+  Ciclos: ninguno  ->  OK
+
+[*] PRIMERO / SIGUIENTE
+  PRIMERO(ExpB) = {(, false, not, true}   SIGUIENTE(ExpB) = {$, ), or}
+  PRIMERO(TermB) = {(, false, not, true}   SIGUIENTE(TermB) = {$, ), and, or}
+  PRIMERO(FactB) = {(, false, not, true}   SIGUIENTE(FactB) = {$, ), and, or}
+
+[6a] Tabla LALR(1) con ply.yacc (sin tabla precedence)
+  Archivo: docs/numeral1/parser.out
+  Estados LALR(1): 15
+  Conflictos shift/reduce: 0
+  Conflictos reduce/reduce: 0
+  Lineas "conflict" en parser.out: 0
+  ->  OK: G es LALR(1), por tanto no ambigua
+
+[6b] Conteo exhaustivo de arboles, todas las cadenas de Sigma^n, n <= 7
+  Cadenas revisadas: 960799
+  Cadenas de L(G) por longitud: n=1: 2, n=2: 2, n=3: 12, n=4: 22, n=5: 90, n=6: 216, n=7: 770
+  Cadenas con 2 o mas arboles: 0  ->  OK
+  Contraejemplo con la gramatica ingenua E -> E or E | E and E | ...:
+    arboles("true or false and false") = 2 en la ingenua vs 1 en la Figura 3
+
+[6c] Arboles unicos: precedencia not > and > or y asociatividad izquierda
+
+  true or false and false   =>  true
+    ExpB
+    ├── ExpB
+    │   └── TermB
+    │       └── FactB
+    │           └── true
+    ├── or
+    └── TermB
+        ├── TermB
+        │   └── FactB
+        │       └── false
+        ├── and
+        └── FactB
+            └── false
+
+  true and false and true   =>  false
+    ExpB
+    └── TermB
+        ├── TermB
+        │   ├── TermB
+        │   │   └── FactB
+        │   │       └── true
+        │   ├── and
+        │   └── FactB
+        │       └── false
+        ├── and
+        └── FactB
+            └── true
+
+  not true and false   =>  false
+    ExpB
+    └── TermB
+        ├── TermB
+        │   └── FactB
+        │       ├── not
+        │       └── FactB
+        │           └── true
+        ├── and
+        └── FactB
+            └── false
+
+[7] Completitud funcional: las 16 funciones booleanas binarias f(x, y)
+  f=0000  OK   {x} and not {x}
+  f=0001  OK   {x} and {y}
+  f=0010  OK   {x} and not {y}
+  f=0011  OK   {x} and not {y} or {x} and {y}
+  f=0100  OK   not {x} and {y}
+  f=0101  OK   not {x} and {y} or {x} and {y}
+  f=0110  OK   not {x} and {y} or {x} and not {y}
+  f=0111  OK   not {x} and {y} or {x} and not {y} or {x} and {y}
+  f=1000  OK   not {x} and not {y}
+  f=1001  OK   not {x} and not {y} or {x} and {y}
+  f=1010  OK   not {x} and not {y} or {x} and not {y}
+  f=1011  OK   not {x} and not {y} or {x} and not {y} or {x} and {y}
+  f=1100  OK   not {x} and not {y} or not {x} and {y}
+  f=1101  OK   not {x} and not {y} or not {x} and {y} or {x} and {y}
+  f=1110  OK   not {x} and not {y} or not {x} and {y} or {x} and not {y}
+  f=1111  OK   not {x} and not {y} or not {x} and {y} or {x} and not {y} or {x} and {y}
+  ->  OK: 16/16 funciones expresables en L(G)

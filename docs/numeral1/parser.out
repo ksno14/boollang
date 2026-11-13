@@ -1,0 +1,221 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Grammar
+
+Rule 0     S' -> ExpB
+Rule 1     ExpB -> ExpB OR TermB
+Rule 2     ExpB -> TermB
+Rule 3     TermB -> TermB AND FactB
+Rule 4     TermB -> FactB
+Rule 5     FactB -> NOT FactB
+Rule 6     FactB -> LPAREN ExpB RPAREN
+Rule 7     FactB -> TRUE
+Rule 8     FactB -> FALSE
+
+Terminals, with rules where they appear
+
+AND                  : 3
+FALSE                : 8
+LPAREN               : 6
+NOT                  : 5
+OR                   : 1
+RPAREN               : 6
+TRUE                 : 7
+error                : 
+
+Nonterminals, with rules where they appear
+
+ExpB                 : 1 6 0
+FactB                : 3 4 5
+TermB                : 1 2 3
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . ExpB
+    (1) ExpB -> . ExpB OR TermB
+    (2) ExpB -> . TermB
+    (3) TermB -> . TermB AND FactB
+    (4) TermB -> . FactB
+    (5) FactB -> . NOT FactB
+    (6) FactB -> . LPAREN ExpB RPAREN
+    (7) FactB -> . TRUE
+    (8) FactB -> . FALSE
+
+    NOT             shift and go to state 4
+    LPAREN          shift and go to state 5
+    TRUE            shift and go to state 6
+    FALSE           shift and go to state 7
+
+    ExpB                           shift and go to state 1
+    TermB                          shift and go to state 2
+    FactB                          shift and go to state 3
+
+state 1
+
+    (0) S' -> ExpB .
+    (1) ExpB -> ExpB . OR TermB
+
+    OR              shift and go to state 8
+
+
+state 2
+
+    (2) ExpB -> TermB .
+    (3) TermB -> TermB . AND FactB
+
+    OR              reduce using rule 2 (ExpB -> TermB .)
+    $end            reduce using rule 2 (ExpB -> TermB .)
+    RPAREN          reduce using rule 2 (ExpB -> TermB .)
+    AND             shift and go to state 9
+
+
+state 3
+
+    (4) TermB -> FactB .
+
+    AND             reduce using rule 4 (TermB -> FactB .)
+    OR              reduce using rule 4 (TermB -> FactB .)
+    $end            reduce using rule 4 (TermB -> FactB .)
+    RPAREN          reduce using rule 4 (TermB -> FactB .)
+
+
+state 4
+
+    (5) FactB -> NOT . FactB
+    (5) FactB -> . NOT FactB
+    (6) FactB -> . LPAREN ExpB RPAREN
+    (7) FactB -> . TRUE
+    (8) FactB -> . FALSE
+
+    NOT             shift and go to state 4
+    LPAREN          shift and go to state 5
+    TRUE            shift and go to state 6
+    FALSE           shift and go to state 7
+
+    FactB                          shift and go to state 10
+
+state 5
+
+    (6) FactB -> LPAREN . ExpB RPAREN
+    (1) ExpB -> . ExpB OR TermB
+    (2) ExpB -> . TermB
+    (3) TermB -> . TermB AND FactB
+    (4) TermB -> . FactB
+    (5) FactB -> . NOT FactB
+    (6) FactB -> . LPAREN ExpB RPAREN
+    (7) FactB -> . TRUE
+    (8) FactB -> . FALSE
+
+    NOT             shift and go to state 4
+    LPAREN          shift and go to state 5
+    TRUE            shift and go to state 6
+    FALSE           shift and go to state 7
+
+    ExpB                           shift and go to state 11
+    TermB                          shift and go to state 2
+    FactB                          shift and go to state 3
+
+state 6
+
+    (7) FactB -> TRUE .
+
+    AND             reduce using rule 7 (FactB -> TRUE .)
+    OR              reduce using rule 7 (FactB -> TRUE .)
+    $end            reduce using rule 7 (FactB -> TRUE .)
+    RPAREN          reduce using rule 7 (FactB -> TRUE .)
+
+
+state 7
+
+    (8) FactB -> FALSE .
+
+    AND             reduce using rule 8 (FactB -> FALSE .)
+    OR              reduce using rule 8 (FactB -> FALSE .)
+    $end            reduce using rule 8 (FactB -> FALSE .)
+    RPAREN          reduce using rule 8 (FactB -> FALSE .)
+
+
+state 8
+
+    (1) ExpB -> ExpB OR . TermB
+    (3) TermB -> . TermB AND FactB
+    (4) TermB -> . FactB
+    (5) FactB -> . NOT FactB
+    (6) FactB -> . LPAREN ExpB RPAREN
+    (7) FactB -> . TRUE
+    (8) FactB -> . FALSE
+
+    NOT             shift and go to state 4
+    LPAREN          shift and go to state 5
+    TRUE            shift and go to state 6
+    FALSE           shift and go to state 7
+
+    TermB                          shift and go to state 12
+    FactB                          shift and go to state 3
+
+state 9
+
+    (3) TermB -> TermB AND . FactB
+    (5) FactB -> . NOT FactB
+    (6) FactB -> . LPAREN ExpB RPAREN
+    (7) FactB -> . TRUE
+    (8) FactB -> . FALSE
+
+    NOT             shift and go to state 4
+    LPAREN          shift and go to state 5
+    TRUE            shift and go to state 6
+    FALSE           shift and go to state 7
+
+    FactB                          shift and go to state 13
+
+state 10
+
+    (5) FactB -> NOT FactB .
+
+    AND             reduce using rule 5 (FactB -> NOT FactB .)
+    OR              reduce using rule 5 (FactB -> NOT FactB .)
+    $end            reduce using rule 5 (FactB -> NOT FactB .)
+    RPAREN          reduce using rule 5 (FactB -> NOT FactB .)
+
+
+state 11
+
+    (6) FactB -> LPAREN ExpB . RPAREN
+    (1) ExpB -> ExpB . OR TermB
+
+    RPAREN          shift and go to state 14
+    OR              shift and go to state 8
+
+
+state 12
+
+    (1) ExpB -> ExpB OR TermB .
+    (3) TermB -> TermB . AND FactB
+
+    OR              reduce using rule 1 (ExpB -> ExpB OR TermB .)
+    $end            reduce using rule 1 (ExpB -> ExpB OR TermB .)
+    RPAREN          reduce using rule 1 (ExpB -> ExpB OR TermB .)
+    AND             shift and go to state 9
+
+
+state 13
+
+    (3) TermB -> TermB AND FactB .
+
+    AND             reduce using rule 3 (TermB -> TermB AND FactB .)
+    OR              reduce using rule 3 (TermB -> TermB AND FactB .)
+    $end            reduce using rule 3 (TermB -> TermB AND FactB .)
+    RPAREN          reduce using rule 3 (TermB -> TermB AND FactB .)
+
+
+state 14
+
+    (6) FactB -> LPAREN ExpB RPAREN .
+
+    AND             reduce using rule 6 (FactB -> LPAREN ExpB RPAREN .)
+    OR              reduce using rule 6 (FactB -> LPAREN ExpB RPAREN .)
+    $end            reduce using rule 6 (FactB -> LPAREN ExpB RPAREN .)
+    RPAREN          reduce using rule 6 (FactB -> LPAREN ExpB RPAREN .)
+

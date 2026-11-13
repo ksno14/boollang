@@ -1,0 +1,99 @@
+(* ====================================================================== *)
+(*  gramatica.ebnf -- Lenguaje boollang (Tarea 36)                         *)
+(*  Gramatica oficial en notacion E-BNF (ISO/IEC 14977, Figura 2).         *)
+(*                                                                        *)
+(*  Metasimbolos usados:                                                  *)
+(*     =        definicion            ;        fin de regla               *)
+(*     ,        concatenacion         |        alternativa                *)
+(*     [ ... ]  opcional (0 o 1)      { ... }  repeticion (0 o mas)       *)
+(*     ( ... )  agrupacion            " ... "  simbolo terminal           *)
+(*     ? ... ?  secuencia especial    -        excepcion                  *)
+(*     (* ... *) comentario                                               *)
+(* ====================================================================== *)
+
+
+(* ---------------------------------------------------------------------- *)
+(*  1. Nivel sintactico: Figura 3                                          *)
+(*                                                                        *)
+(*  BNF original (8 producciones, simbolo inicial ExpB):                  *)
+(*     P1  ExpB  -> ExpB or TermB        P5  FactB -> not FactB            *)
+(*     P2  ExpB  -> TermB                P6  FactB -> ( ExpB )             *)
+(*     P3  TermB -> TermB and FactB      P7  FactB -> true                 *)
+(*     P4  TermB -> FactB                P8  FactB -> false                *)
+(*                                                                        *)
+(*  En E-BNF la recursion izquierda  A -> A op B | B  se escribe como     *)
+(*  la repeticion  A = B, { op, B }.  Ambas formas generan el mismo       *)
+(*  lenguaje; la lectura de izquierda a derecha de la repeticion          *)
+(*  corresponde a la asociatividad IZQUIERDA de "or" y "and".             *)
+(*                                                                        *)
+(*  Niveles (de menor a mayor precedencia):                               *)
+(*     expb  (or)  <  termb  (and)  <  factb  (not, parentesis, literal)  *)
+(* ---------------------------------------------------------------------- *)
+
+expb  = termb, { "or", termb } ;
+
+termb = factb, { "and", factb } ;
+
+factb = "not", factb
+      | "(", expb, ")"
+      | "true"
+      | "false" ;
+
+
+(* ---------------------------------------------------------------------- *)
+(*  2. Nivel de programa (archivo fuente)                                  *)
+(*                                                                        *)
+(*  Un archivo fuente es una secuencia de sentencias. Cada sentencia es   *)
+(*  una expresion terminada en ";" o en salto de linea; las lineas vacias *)
+(*  o solo con comentarios son sentencias vacias. La ultima expresion    *)
+(*  puede no llevar terminador (fin de archivo).                          *)
+(* ---------------------------------------------------------------------- *)
+
+programa   = { sentencia }, [ expb ] ;
+
+sentencia  = [ expb ], terminador ;
+
+terminador = ";" | salto_linea ;
+
+
+(* ---------------------------------------------------------------------- *)
+(*  3. Nivel lexico (tokens de boollang/lexer.py)                          *)
+(*                                                                        *)
+(*  Token  TRUE  FALSE  AND  OR  NOT  LPAREN RPAREN PUNTOYCOMA NEWLINE     *)
+(*  Lexema "true" "false" "and" "or" "not" "(" ")" ";" salto_linea         *)
+(*                                                                        *)
+(*  Las palabras reservadas van SOLO en minuscula. Cualquier otra palabra *)
+(*  (TRUE, False, xor, ...) es un error lexico.                           *)
+(* ---------------------------------------------------------------------- *)
+
+palabra_reservada = "true" | "false" | "and" | "or" | "not" ;
+
+palabra           = ( letra | "_" ), { letra | digito | "_" } ;
+
+palabra_no_valida = palabra - palabra_reservada ;   (* error lexico *)
+
+letra  = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k"
+       | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v"
+       | "w" | "x" | "y" | "z"
+       | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K"
+       | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V"
+       | "W" | "X" | "Y" | "Z" ;
+
+digito = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+
+salto_linea = ? caracter de nueva linea, U+000A ? ;
+
+
+(* Elementos que el analizador lexico descarta (no llegan al parser).     *)
+
+ignorado           = espacio | comentario_linea | comentario_bloque ;
+
+espacio            = " " | ? tabulador, U+0009 ? | ? retorno de carro, U+000D ? ;
+
+comentario_linea   = "/", "/", { caracter - salto_linea } ;
+                     (* no consume el salto de linea final *)
+
+comentario_bloque  = "/", "*", { caracter - ( "*", "/" ) }, "*", "/" ;
+                     (* puede abarcar varias lineas; termina en el primer */ *)
+
+caracter           = ? cualquier caracter Unicode ? ;

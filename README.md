@@ -88,6 +88,20 @@ python -m pytest -v
 
 ---
 
+## Numeral 1: Verificación de la Gramática (GLC) y E-BNF
+
+- `gramatica.ebnf`: gramática oficial en notación E-BNF (ISO/IEC 14977): Figura 3, nivel de programa y nivel léxico.
+- `docs/numeral1/verificacion_glc.md`: demostración de que la Figura 3 es una GLC bien formada (símbolos productivos y alcanzables, sin producciones ε ni ciclos), no ambigua y funcionalmente completa.
+- `docs/numeral1/parser.out`: tabla LALR(1) generada por `ply.yacc` con las 8 reglas y sin tabla `precedence`: **15 estados, 0 conflictos**.
+- `docs/numeral1/verificar_glc.py`: comprueba automáticamente todas las propiedades y regenera `parser.out`.
+
+```bash
+python docs/numeral1/verificar_glc.py
+python -m pytest tests/test_gramatica.py -v
+```
+
+---
+
 ## Ejemplo de Uso en Código
 
 ```python
