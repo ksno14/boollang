@@ -395,3 +395,15 @@ class TestTrazaRelacionalTarea37:
         assert "+   [11]" in texto_arbol
         assert "/   [2.0]" in texto_arbol
 
+        texto_traza = formatear_traza(traza)
+        assert "Precedencia: unario - > *,/,impl > +,- > rel > not > and > or" in texto_traza
+
+    def test_cli_numeral2_rel(self, capsys):
+        codigo = main(["--numeral2-rel", "--ascii"])
+        assert codigo == 0
+        salida = capsys.readouterr().out
+        assert "VERIFICACIÓN AUTOMATIZADA RELACIONAL" in salida
+        assert "[R1] (3X+5Y) <= X/(3-Z)" in salida
+        assert "Valor: false" in salida
+        assert "Valor: true" in salida
+        assert "RECHAZADA CORRECTAMENTE" in salida

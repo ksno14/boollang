@@ -148,12 +148,12 @@ class TestNumeral2RelacionalTarea37:
         from boollang.parser import parsear_programa
 
         pasos = derivacion_izquierda_rel(arbol_concreto_de(R1))
-        assert len(pasos) - 1 == 23
+        assert len(pasos) - 1 == 25
         assert pasos[-1][0] == terminales_rel_de(R1)
         prog = parsear_programa(R1)
         assert evaluar(prog.sentencias[0].arbol, ENTORNO_PRUEBA) is False
 
-    def test_r2_compuesta_45_pasos(self):
+    def test_r2_compuesta_48_pasos(self):
         from docs.numeral2.derivaciones_relacionales import (
             ENTORNO_PRUEBA,
             R2,
@@ -165,7 +165,7 @@ class TestNumeral2RelacionalTarea37:
         from boollang.parser import parsear_programa
 
         pasos = derivacion_izquierda_rel(arbol_concreto_de(R2))
-        assert len(pasos) - 1 == 45
+        assert len(pasos) - 1 == 48
         assert pasos[-1][0] == terminales_rel_de(R2)
         prog = parsear_programa(R2)
         assert evaluar(prog.sentencias[0].arbol, ENTORNO_PRUEBA) is True

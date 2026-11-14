@@ -40,10 +40,10 @@
                 | TermA
    TermA      ::= TermA '*' FactA
                 | TermA '/' FactA
-                | NUMBER ID
-                | NUMBER '(' ExpA ')'
                 | FactA
    FactA      ::= '-' FactA
+                | NUMBER ID
+                | NUMBER '(' ExpA ')'
                 | '(' ExpA ')'
                 | NUMBER
                 | ID
@@ -80,12 +80,13 @@ oprel  = "<=" | ">=" | "==" | "!=" | "<" | ">" ;
 
 expa  = terma, { ( "+" | "-" ), terma } ;
 
-terma = ( facta | mult_implicita ), { ( "*" | "/" ), facta } ;
+terma = facta, { ( "*" | "/" ), facta } ;
 
 mult_implicita = numero, identificador
                | numero, "(", expa, ")" ;
 
 facta = "-", facta
+      | mult_implicita
       | "(", expa, ")"
       | numero
       | identificador ;

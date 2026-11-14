@@ -344,14 +344,6 @@ class ParserBoollang:
         'TermA : TermA DIVIDE FactA'
         p[0] = BinOpArit("/", p[1], p[3])
 
-    def p_TermA_implicita_id(self, p):
-        'TermA : NUMBER ID'
-        p[0] = BinOpArit("*", Numero(p[1]), Variable(p[2]), implicita=True)
-
-    def p_TermA_implicita_paren(self, p):
-        'TermA : NUMBER LPAREN ExpA RPAREN'
-        p[0] = BinOpArit("*", Numero(p[1]), p[3], implicita=True)
-
     def p_TermA_FactA(self, p):
         'TermA : FactA'
         p[0] = p[1]
@@ -359,6 +351,14 @@ class ParserBoollang:
     def p_FactA_uminus(self, p):
         'FactA : MINUS FactA'
         p[0] = UnarioArit(p[2])
+
+    def p_FactA_implicita_id(self, p):
+        'FactA : NUMBER ID'
+        p[0] = BinOpArit("*", Numero(p[1]), Variable(p[2]), implicita=True)
+
+    def p_FactA_implicita_paren(self, p):
+        'FactA : NUMBER LPAREN ExpA RPAREN'
+        p[0] = BinOpArit("*", Numero(p[1]), p[3], implicita=True)
 
     def p_FactA_paren(self, p):
         'FactA : LPAREN ExpA RPAREN'

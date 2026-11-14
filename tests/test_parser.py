@@ -518,3 +518,13 @@ class TestParserRelacionalTarea37:
             (2, 'X = 3', Asignacion('X', Numero(3))),
         ]
 
+
+    def test_multiplicacion_implicita_combinada_con_unario_y_division(self):
+        from boollang.evaluador import evaluar
+
+        env = {'X': 2, 'Y': 1}
+        assert evaluar(_arbol('-2X <= 0'), env) is True
+        assert evaluar(_arbol('2 * 3X == 12'), env) is True
+        assert evaluar(_arbol('6 / 2X == 1.5'), env) is True
+        assert evaluar(_arbol('3X * 5Y == 30'), env) is True
+        assert evaluar(_arbol('-2(X+1) == -6'), env) is True

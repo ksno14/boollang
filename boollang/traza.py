@@ -532,9 +532,18 @@ def trazar_evaluacion(
 
 def formatear_traza(traza: TrazaEvaluacion, con_arbol: bool = True) -> str:
     """Produce una representación en texto enriquecido de la traza de evaluación."""
+    es_relacional = any(
+        paso.operador in ("VAR", "UMINUS", "+", "-", "*", "/", "<=", ">=", "==", "!=", "<", ">")
+        for paso in traza.pasos
+    )
+    etiqueta_prec = (
+        "Precedencia: unario - > *,/,impl > +,- > rel > not > and > or"
+        if es_relacional
+        else "Precedencia: not > and > or"
+    )
     lineas = [
         "=" * 78,
-        "Traza de Evaluacion (Precedencia: not > and > or)",
+        f"Traza de Evaluacion ({etiqueta_prec})",
         "=" * 78,
         f"Expresion original: {traza.expresion_original}",
         f"Resultado final:    {formatear_booleano(traza.resultado_final)}",

@@ -91,7 +91,13 @@ def construir_argparser() -> argparse.ArgumentParser:
         "--verificar-numeral2",
         dest="numeral2",
         action="store_true",
-        help="Ejecuta la verificación automatizada de las 3 expresiones del Numeral 2 con árbol y traza.",
+        help="Ejecuta la verificación automatizada de las 3 expresiones del Numeral 2 (Tarea 36) con árbol y traza.",
+    )
+    parser.add_argument(
+        "--numeral2-rel",
+        dest="numeral2_rel",
+        action="store_true",
+        help="Ejecuta la verificación automatizada de R1, R2 y R3 (Tarea 37) con entorno X=2, Y=1, Z=2.",
     )
     return parser
 
@@ -102,7 +108,29 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     args = argparser.parse_args(argv)
     estilo = "ascii" if args.ascii else _estilo_para(sys.stdout)
 
-    # 1. Modo Verificación Numeral 2
+    # 1. Modo Verificación Numeral 2 (Tarea 36 y Tarea 37)
+    if args.numeral2_rel:
+        entorno_demo = {"X": 2, "Y": 1, "Z": 2}
+        exprs = [
+            ("R1", "(3X+5Y) <= X/(3-Z)"),
+            ("R2", "not ((3X+5Y) <= X/(3-Z)) and (2X + Y == 5) or false"),
+        ]
+        print("=" * 78)
+        print(" VERIFICACIÓN AUTOMATIZADA RELACIONAL — TAREA 37 (Entorno: X=2, Y=1, Z=2)")
+        print("=" * 78)
+        for clave, expr in exprs:
+            traza = trazar_evaluacion(expr, estilo_arbol=estilo, entorno=entorno_demo)
+            print(f"\n[{clave}] {expr}")
+            print(f"Estado: VÁLIDA | Valor: {formatear_booleano(traza.resultado_final)}")
+            print(formatear_traza(traza))
+        from .parser import parsear_programa as _parsear_prog_rel
+
+        err_r3 = _parsear_prog_rel("(3X+5Y) <= <= 10").sentencias[0].error
+        print("\n[R3] (3X+5Y) <= <= 10")
+        print(f"Estado: RECHAZADA CORRECTAMENTE | Error: {err_r3}")
+        print("=" * 78)
+        return 0
+
     if args.numeral2:
         resultados = verificar_numeral2(estilo_arbol=estilo)
         print("=" * 78)

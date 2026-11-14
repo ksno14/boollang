@@ -3,8 +3,8 @@ Tarea 37 (Integrante 5) - Derivaciones mas a la izquierda y arboles sintacticos
 para expresiones proposicionales relacionales y mixtas.
 
 Incluye:
-    - R1 (obligatoria del enunciado): `(3X+5Y) <= X/(3-Z)` (23 pasos =>lm, evalua a false)
-    - R2 (mixta relacional + booleana): `not ((3X+5Y) <= X/(3-Z)) and (2X + Y == 5) or false` (46 pasos =>lm, evalua a true)
+    - R1 (obligatoria del enunciado): `(3X+5Y) <= X/(3-Z)` (25 pasos =>lm, evalua a false)
+    - R2 (mixta relacional + booleana): `not ((3X+5Y) <= X/(3-Z)) and (2X + Y == 5) or false` (48 pasos =>lm, evalua a true)
     - R3 (invalida sintacticamente): `(3X+5Y) <= <= 10` (bloqueo en el segundo `<=`, col 12)
 """
 
@@ -124,14 +124,6 @@ class _ConstructoraArbolConcreto:
         'TermA : TermA DIVIDE FactA'
         p[0] = ('TermA', [p[1], '/', p[3]])
 
-    def p_TermA_implicita_id(self, p):
-        'TermA : NUMBER ID'
-        p[0] = ('TermA', ['NUMBER', 'ID'])
-
-    def p_TermA_implicita_paren(self, p):
-        'TermA : NUMBER LPAREN ExpA RPAREN'
-        p[0] = ('TermA', ['NUMBER', '(', p[3], ')'])
-
     def p_TermA_FactA(self, p):
         'TermA : FactA'
         p[0] = ('TermA', [p[1]])
@@ -139,6 +131,14 @@ class _ConstructoraArbolConcreto:
     def p_FactA_uminus(self, p):
         'FactA : MINUS FactA'
         p[0] = ('FactA', ['-', p[2]])
+
+    def p_FactA_implicita_id(self, p):
+        'FactA : NUMBER ID'
+        p[0] = ('FactA', ['NUMBER', 'ID'])
+
+    def p_FactA_implicita_paren(self, p):
+        'FactA : NUMBER LPAREN ExpA RPAREN'
+        p[0] = ('FactA', ['NUMBER', '(', p[3], ')'])
 
     def p_FactA_paren(self, p):
         'FactA : LPAREN ExpA RPAREN'

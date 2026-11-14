@@ -191,7 +191,7 @@ class TestGramaticaRelacionalTarea37:
     def test_lalr1_relacional_cero_conflictos(self, lalr_rel):
         assert lalr_rel['sr'] == 0
         assert lalr_rel['rr'] == 0
-        assert lalr_rel['estados'] == 48
+        assert lalr_rel['estados'] == 47
 
     def test_ejemplo_enunciado_y_jerarquia_7_niveles(self, lalr_rel):
         parser = lalr_rel['parser']

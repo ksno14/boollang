@@ -92,14 +92,14 @@ PRODUCCIONES = (
     ('ExpA', ('ExpA', '+', 'TermA')),           # P17
     ('ExpA', ('ExpA', '-', 'TermA')),           # P18
     ('ExpA', ('TermA',)),                       # P19
-    # Nivel 6: Multiplicativo Aritmetico + Multiplicacion Implicita (3X, 2(X+1))
+    # Nivel 6: Multiplicativo Aritmetico
     ('TermA', ('TermA', '*', 'FactA')),         # P20
     ('TermA', ('TermA', '/', 'FactA')),         # P21
-    ('TermA', ('NUMBER', 'ID')),                # P22
-    ('TermA', ('NUMBER', '(', 'ExpA', ')')),    # P23
-    ('TermA', ('FactA',)),                      # P24
-    # Nivel 7: Unario Aritmetico y Atomos Algebraicos
-    ('FactA', ('-', 'FactA')),                  # P25
+    ('TermA', ('FactA',)),                      # P22
+    # Nivel 7: Unario, Multiplicacion Implicita y Atomos Algebraicos
+    ('FactA', ('-', 'FactA')),                  # P23
+    ('FactA', ('NUMBER', 'ID')),                # P24
+    ('FactA', ('NUMBER', '(', 'ExpA', ')')),    # P25
     ('FactA', ('(', 'ExpA', ')')),              # P26
     ('FactA', ('NUMBER',)),                     # P27
     ('FactA', ('ID',)),                         # P28
@@ -306,14 +306,6 @@ class _EspecificacionGLCRelacional:
         'TermA : TermA DIVIDE FactA'
         p[0] = ('/', p[1], p[3])
 
-    def p_TermA_implicita_id(self, p):
-        'TermA : NUMBER ID'
-        p[0] = ('*impl', ('num', p[1]), ('var', p[2]))
-
-    def p_TermA_implicita_paren(self, p):
-        'TermA : NUMBER LPAREN ExpA RPAREN'
-        p[0] = ('*impl', ('num', p[1]), p[3])
-
     def p_TermA_FactA(self, p):
         'TermA : FactA'
         p[0] = p[1]
@@ -321,6 +313,14 @@ class _EspecificacionGLCRelacional:
     def p_FactA_uminus(self, p):
         'FactA : MINUS FactA'
         p[0] = ('uminus', p[2])
+
+    def p_FactA_implicita_id(self, p):
+        'FactA : NUMBER ID'
+        p[0] = ('*impl', ('num', p[1]), ('var', p[2]))
+
+    def p_FactA_implicita_paren(self, p):
+        'FactA : NUMBER LPAREN ExpA RPAREN'
+        p[0] = ('*impl', ('num', p[1]), p[3])
 
     def p_FactA_paren(self, p):
         'FactA : LPAREN ExpA RPAREN'

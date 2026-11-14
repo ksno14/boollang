@@ -1,0 +1,6 @@
+GLC bien formada: True
+Productivos: True
+Alcanzables: True
+Ciclos: []
+Estados LALR(1): 47, SR=0, RR=0
+AST de '(3X+5Y) <= X/(3-Z)': ('rel', '<=', ('+', ('*impl', ('num', 3), ('var', 'X')), ('*impl', ('num', 5), ('var', 'Y'))), ('/', ('var', 'X'), ('-', ('num', 3), ('var', 'Z'))))
