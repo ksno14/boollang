@@ -1,0 +1,19 @@
+// Verificacion de leyes del algebra de Boole (todas deben evaluar a true salvo contradicciones explicitas)
+// 1. Doble negacion: not (not true) -> true
+not (not true)
+// 2. Tercero excluido: (true or not true) -> true
+true or not true
+// 3. Contradiccion: (true and not true) -> false
+true and not true
+// 4. Ley de De Morgan: not (true and false) -> true
+not (true and false)
+// 5. Ley de De Morgan: not true or not false -> true
+not true or not false
+// 6. Ley de De Morgan: not (true or false) -> false
+not (true or false)
+// 7. Ley de De Morgan: not true and not false -> false
+not true and not false
+// 8. Absorcion: true or (true and false) -> true
+true or (true and false)
+// 9. Distributividad: true and (false or true) -> true
+true and (false or true)

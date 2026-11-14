@@ -1,0 +1,12 @@
+/* Archivo de prueba con comentarios multilinea,
+   comentarios de una linea, tabulaciones y ';' */
+
+true and true; false or false; not false
+
+// Comentario al final de la linea
+(true or false) and not false // resultado: true
+
+	/* comentario entre tokens */
+not (false /* interno */ or false)
+;
+true and not (true and false);

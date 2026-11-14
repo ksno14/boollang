@@ -1,0 +1,16 @@
+// Ejemplos basicos, tablas de verdad y precedencia (not > and > or)
+true
+false
+not true
+not false
+true and false
+true and true
+false or true
+false or false
+true or false and false
+(true or false) and false
+not true and false
+not (true and false)
+// Expresiones E1 y E2 del Numeral 2
+not (true and false) or false and not false
+(not true or false) and (true or not false) or not (false or true) and true

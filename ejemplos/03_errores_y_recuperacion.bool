@@ -1,0 +1,8 @@
+// Archivo de prueba con errores lexicos, sintacticos y recuperacion por linea
+true and false
+TRUE or false
+not (true and false) or (not or false)
+(true and false
+not false or @ true
+true and or false; not false
+not (false and true)

@@ -35,6 +35,10 @@ from .nodos import (
     Programa,
     Sentencia,
 )
+from .parser import (
+    ParserBoollang,
+    parsear_programa,
+)
 from .traza import (
     PasoTraza,
     TrazaEvaluacion,
@@ -60,6 +64,8 @@ __all__ = [
     "ExprBool",
     "Sentencia",
     "Programa",
+    "ParserBoollang",
+    "parsear_programa",
     "ResultadoSentencia",
     "ResumenEvaluacion",
     "evaluar",
