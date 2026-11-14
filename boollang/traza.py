@@ -1,40 +1,56 @@
 """
 Módulo de traza de evaluación y formateo del Árbol de Sintaxis Abstracta (AST).
 
-Responsabilidad técnica del Integrante 6 (Estructura del árbol AST y traza de evaluación).
-
-Este módulo proporciona:
-- Representación en texto estructurado del AST (`formatear_arbol`).
-- Simulación paso a paso de la evaluación según precedencia de operadores (not > and > or) (`trazar_evaluacion`).
-- Formateo legible de la traza de evaluación (`formatear_traza`).
-- Verificación automatizada de las 3 expresiones del Numeral 2 (`verificar_numeral2`).
+Responsabilidad técnica del Integrante 6 (Estructura del árbol AST y traza de evaluación)
+para las Tareas 36 (booleana) y 37 (proposicional relacional y aritmética).
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple, Union
 
-from .evaluador import evaluar, formatear_booleano
+from .evaluador import (
+    EntornoVariables,
+    ValorNumerico,
+    _comparar_relacional,
+    evaluar,
+    evaluar_aritmetica,
+    formatear_booleano,
+)
 from .lexer import find_column, tokenize
-from .nodos import Conjuncion, Constante, Disyuncion, ExprBool, Negacion
+from .nodos import (
+    Asignacion,
+    BinOpArit,
+    ComparacionRel,
+    Conjuncion,
+    Constante,
+    Disyuncion,
+    ExprArit,
+    ExprBool,
+    Negacion,
+    NodoAST,
+    Numero,
+    UnarioArit,
+    Variable,
+)
 
 
 @dataclass(frozen=True)
 class PasoTraza:
-    """Representa un paso individual en la evaluación de una expresión booleana."""
+    """Representa un paso individual en la evaluación de una expresión booleana o relacional."""
 
     numero: int
     operador: str
     precedencia: int
     subexpresion: str
-    resultado: bool
+    resultado: Union[bool, int, float]
     expresion_actual: str
 
 
 @dataclass(frozen=True)
 class TrazaEvaluacion:
-    """Traza consolidada de la evaluación completa de una expresión booleana."""
+    """Traza consolidada de la evaluación completa de una expresión."""
 
     expresion_original: str
     arbol_texto: str
@@ -47,27 +63,31 @@ class TrazaEvaluacion:
         return len(self.pasos)
 
 
+def _formatear_valor_nodo(
+    nodo: Any,
+    entorno: Optional[EntornoVariables] = None,
+) -> str:
+    if isinstance(nodo, (Numero, Variable, UnarioArit, BinOpArit)):
+        val = evaluar_aritmetica(nodo, entorno)
+        return str(val)
+    if isinstance(nodo, Asignacion):
+        val = evaluar_aritmetica(nodo.expr, entorno)
+        return f"{nodo.nombre}={val}"
+    val_bool = evaluar(nodo, entorno)
+    return formatear_booleano(val_bool)
+
+
 def formatear_arbol(
-    nodo: ExprBool,
+    nodo: Any,
     con_valores: bool = True,
     estilo: str = "unicode",
     prefijo: str = "",
     ultimo: bool = True,
     raiz: bool = True,
+    entorno: Optional[EntornoVariables] = None,
 ) -> str:
     """
-    Formatea el AST en una representación visual jerárquica en texto.
-
-    Parámetros:
-        nodo: Nodo raíz o subárbol de tipo `ExprBool`.
-        con_valores: Si es True, añade el valor evaluado `[true]` o `[false]` de cada subárbol.
-        estilo: "unicode" para ramas `├── `, `└── `, `│   `; "ascii" para `|-- `, `\\-- `, `|   `.
-        prefijo: Cadena interna de indentación para recursión.
-        ultimo: Booleano que indica si es el último hijo en su nivel.
-        raiz: Booleano que indica si es la raíz del árbol.
-
-    Lanza:
-        ValueError: Si `estilo` no es "unicode" ni "ascii".
+    Formatea el AST (booleano, relacional o aritmético) en una representación visual jerárquica.
     """
     if estilo not in ("unicode", "ascii"):
         raise ValueError(f"estilo no soportado: {estilo!r} (use 'unicode' o 'ascii')")
@@ -90,11 +110,23 @@ def formatear_arbol(
         nombre = "and"
     elif isinstance(nodo, Disyuncion):
         nombre = "or"
+    elif isinstance(nodo, ComparacionRel):
+        nombre = nodo.operador
+    elif isinstance(nodo, BinOpArit):
+        nombre = f"{nodo.operador} (impl)" if nodo.implicita else nodo.operador
+    elif isinstance(nodo, UnarioArit):
+        nombre = "- (unario)"
+    elif isinstance(nodo, Numero):
+        nombre = str(nodo.valor)
+    elif isinstance(nodo, Variable):
+        nombre = nodo.nombre
+    elif isinstance(nodo, Asignacion):
+        nombre = f"= ({nodo.nombre})"
     else:
         nombre = type(nodo).__name__
 
     if con_valores:
-        valor_str = formatear_booleano(evaluar(nodo))
+        valor_str = _formatear_valor_nodo(nodo, entorno)
         etiqueta = f"{nombre}   [{valor_str}]"
     else:
         etiqueta = nombre
@@ -117,16 +149,58 @@ def formatear_arbol(
             prefijo=nuevo_prefijo,
             ultimo=es_ultimo,
             raiz=False,
+            entorno=entorno,
         )
         lineas.append(sub_lineas)
 
     return "\n".join(lineas)
 
 
-def _es_reducible(nodo: ExprBool) -> bool:
-    """Determina si un nodo puede ser evaluado directamente porque todos sus hijos son constantes."""
+def _es_reducible_arit(nodo: ExprArit) -> bool:
+    if isinstance(nodo, Numero):
+        return False
+    if isinstance(nodo, Variable):
+        return True
+    if isinstance(nodo, UnarioArit):
+        return isinstance(nodo.op, Numero)
+    if isinstance(nodo, BinOpArit):
+        if nodo.implicita and isinstance(nodo.izq, Numero) and isinstance(nodo.der, (Numero, Variable)):
+            return True
+        return isinstance(nodo.izq, Numero) and isinstance(nodo.der, Numero)
+    return False
+
+
+def _encontrar_siguiente_reducible_arit(nodo: ExprArit) -> Optional[ExprArit]:
+    if isinstance(nodo, Numero):
+        return None
+    if isinstance(nodo, Variable):
+        return nodo
+    if isinstance(nodo, UnarioArit):
+        if _es_reducible_arit(nodo):
+            return nodo
+        return _encontrar_siguiente_reducible_arit(nodo.op)
+    if isinstance(nodo, BinOpArit):
+        if nodo.implicita and isinstance(nodo.izq, Numero) and isinstance(nodo.der, Variable):
+            return nodo
+        sub_izq = _encontrar_siguiente_reducible_arit(nodo.izq)
+        if sub_izq is not None:
+            return sub_izq
+        sub_der = _encontrar_siguiente_reducible_arit(nodo.der)
+        if sub_der is not None:
+            return sub_der
+        if _es_reducible_arit(nodo):
+            return nodo
+    return None
+
+
+def _es_reducible(nodo: Any) -> bool:
+    """Determina si un nodo puede ser evaluado en un paso inmediato."""
     if isinstance(nodo, Constante):
         return False
+    if isinstance(nodo, (Numero, Variable, UnarioArit, BinOpArit)):
+        return _es_reducible_arit(nodo)
+    if isinstance(nodo, ComparacionRel):
+        return isinstance(nodo.izq, Numero) and isinstance(nodo.der, Numero)
     if isinstance(nodo, Negacion):
         return isinstance(nodo.op, Constante)
     if isinstance(nodo, (Conjuncion, Disyuncion)):
@@ -134,13 +208,28 @@ def _es_reducible(nodo: ExprBool) -> bool:
     return False
 
 
-def _encontrar_siguiente_reducible(nodo: ExprBool) -> Optional[ExprBool]:
+def _encontrar_siguiente_reducible(nodo: Any) -> Optional[Any]:
     """
-    Encuentra el siguiente nodo reducible en orden de evaluación natural (post-orden):
-    evalúa subárboles agrupados (paréntesis), y dentro de cada subexpresión
-    respeta la precedencia (not > and > or) y asociatividad a izquierda.
+    Encuentra el siguiente nodo reducible respetando los 7 niveles de precedencia:
+    primero reduce subárboles aritméticos (unario - > * / implícita > + -),
+    luego la comparación relacional (<=, >=, ==, !=, <, >) y finalmente los
+    conectivos booleanos (not > and > or).
     """
     if isinstance(nodo, Constante):
+        return None
+
+    if isinstance(nodo, (Numero, Variable, UnarioArit, BinOpArit)):
+        return _encontrar_siguiente_reducible_arit(nodo)
+
+    if isinstance(nodo, ComparacionRel):
+        sub_izq = _encontrar_siguiente_reducible_arit(nodo.izq)
+        if sub_izq is not None:
+            return sub_izq
+        sub_der = _encontrar_siguiente_reducible_arit(nodo.der)
+        if sub_der is not None:
+            return sub_der
+        if _es_reducible(nodo):
+            return nodo
         return None
 
     if isinstance(nodo, Negacion):
@@ -162,15 +251,39 @@ def _encontrar_siguiente_reducible(nodo: ExprBool) -> Optional[ExprBool]:
 
 
 def _reemplazar_subarbol_una_vez(
-    arbol: ExprBool,
-    objetivo: ExprBool,
-    reemplazo: ExprBool,
-) -> Tuple[ExprBool, bool]:
+    arbol: Any,
+    objetivo: Any,
+    reemplazo: Any,
+) -> Tuple[Any, bool]:
     """Reemplaza la primera aparición física del subárbol `objetivo` por `reemplazo`."""
     if arbol is objetivo:
         return reemplazo, True
 
-    if isinstance(arbol, Constante):
+    if isinstance(arbol, (Constante, Numero, Variable)):
+        return arbol, False
+
+    if isinstance(arbol, UnarioArit):
+        nuevo_op, hecho = _reemplazar_subarbol_una_vez(arbol.op, objetivo, reemplazo)
+        if hecho:
+            return UnarioArit(nuevo_op), True
+        return arbol, False
+
+    if isinstance(arbol, BinOpArit):
+        nuevo_izq, hecho = _reemplazar_subarbol_una_vez(arbol.izq, objetivo, reemplazo)
+        if hecho:
+            return BinOpArit(arbol.operador, nuevo_izq, arbol.der, arbol.implicita), True
+        nuevo_der, hecho = _reemplazar_subarbol_una_vez(arbol.der, objetivo, reemplazo)
+        if hecho:
+            return BinOpArit(arbol.operador, arbol.izq, nuevo_der, arbol.implicita), True
+        return arbol, False
+
+    if isinstance(arbol, ComparacionRel):
+        nuevo_izq, hecho = _reemplazar_subarbol_una_vez(arbol.izq, objetivo, reemplazo)
+        if hecho:
+            return ComparacionRel(arbol.operador, nuevo_izq, arbol.der), True
+        nuevo_der, hecho = _reemplazar_subarbol_una_vez(arbol.der, objetivo, reemplazo)
+        if hecho:
+            return ComparacionRel(arbol.operador, arbol.izq, nuevo_der), True
         return arbol, False
 
     if isinstance(arbol, Negacion):
@@ -200,18 +313,13 @@ def _reemplazar_subarbol_una_vez(
     return arbol, False
 
 
+_TOKENS_SOLO_BOOLEANOS = frozenset({"TRUE", "FALSE", "AND", "OR", "NOT", "LPAREN", "RPAREN", "NEWLINE"})
+
+
 def parsear_expresion(texto: str) -> ExprBool:
     """
-    Analiza una expresión booleana individual según la gramática de la Figura 3
-    y construye directamente su Árbol de Sintaxis Abstracta (AST).
+    Analiza una expresión booleana o proposicional relacional y construye su AST.
     Lanza `SyntaxError` si la expresión no pertenece al lenguaje.
-
-    Nota: esta es una implementación autónoma y equivalente de la Figura 3
-    usada para las opciones `-e` / `--numeral2` y como respaldo en `--traza`
-    sobre archivos. El analizador oficial del proyecto es el parser LALR(1)
-    con `ply.yacc` (Integrante 3, `boollang/parser.py`, pendiente de integración);
-    cuando esté disponible, estas rutas deberían delegar en él en lugar de
-    mantener dos implementaciones paralelas de la gramática.
     """
     tokens, errores_lex = tokenize(texto)
     if errores_lex:
@@ -221,6 +329,20 @@ def parsear_expresion(texto: str) -> ExprBool:
     toks = [t for t in tokens if t.type != "NEWLINE"]
     if not toks:
         raise SyntaxError("Expresion vacia")
+
+    # Si contiene tokens relacionales o aritméticos (Tarea 37), delegar al parser LALR(1)
+    if any(t.type not in _TOKENS_SOLO_BOOLEANOS for t in toks):
+        from .parser import parsear_programa
+
+        prog = parsear_programa(texto)
+        if not prog.sentencias:
+            raise SyntaxError("Expresion vacia")
+        sent = prog.sentencias[0]
+        if sent.error is not None or sent.arbol is None:
+            raise SyntaxError(sent.error or "ERROR sintactico")
+        if isinstance(sent.arbol, Asignacion):
+            raise SyntaxError("Se esperaba una expresion booleana/relacional, no una asignacion")
+        return sent.arbol
 
     pos = 0
 
@@ -295,11 +417,11 @@ def trazar_evaluacion(
     nodo_o_cadena: Union[ExprBool, str],
     texto_original: Optional[str] = None,
     estilo_arbol: str = "unicode",
+    entorno: Optional[EntornoVariables] = None,
 ) -> TrazaEvaluacion:
     """
-    Ejecuta la evaluación paso a paso registrando el orden de precedencia y las reducciones.
-
-    Retorna un objeto `TrazaEvaluacion` con el árbol formateado y la lista de `PasoTraza`.
+    Ejecuta la evaluación paso a paso registrando los valores numéricos intermedios
+    y las reducciones booleanas según la jerarquía de 7 niveles de precedencia.
     """
     if isinstance(nodo_o_cadena, str):
         texto = texto_original or nodo_o_cadena.strip()
@@ -312,10 +434,11 @@ def trazar_evaluacion(
             else (arbol_raiz.a_texto() if hasattr(arbol_raiz, "a_texto") else str(arbol_raiz))
         )
 
-    arbol_texto = formatear_arbol(arbol_raiz, con_valores=True, estilo=estilo_arbol)
-    resultado_final = evaluar(arbol_raiz)
+    arbol_texto = formatear_arbol(
+        arbol_raiz, con_valores=True, estilo=estilo_arbol, entorno=entorno
+    )
+    resultado_final = evaluar(arbol_raiz, entorno)
 
-    # Si la expresión es una constante atómica
     if isinstance(arbol_raiz, Constante):
         paso_unico = PasoTraza(
             numero=1,
@@ -333,7 +456,7 @@ def trazar_evaluacion(
         )
 
     pasos: list[PasoTraza] = []
-    arbol_actual = arbol_raiz
+    arbol_actual: Any = arbol_raiz
     numero_paso = 1
 
     while not isinstance(arbol_actual, Constante):
@@ -341,23 +464,46 @@ def trazar_evaluacion(
         if siguiente is None:
             break
 
-        val = evaluar(siguiente)
-        if isinstance(siguiente, Negacion):
-            op_nombre = "NOT"
-            prec = 3
-        elif isinstance(siguiente, Conjuncion):
-            op_nombre = "AND"
-            prec = 2
-        elif isinstance(siguiente, Disyuncion):
-            op_nombre = "OR"
-            prec = 1
-        else:
-            op_nombre = "CONST"
-            prec = 4
-
         sub_txt = siguiente.a_texto() if hasattr(siguiente, "a_texto") else str(siguiente)
+
+        if isinstance(siguiente, (Variable, UnarioArit, BinOpArit)):
+            val_num = evaluar_aritmetica(siguiente, entorno)
+            if isinstance(siguiente, Variable):
+                op_nombre = "VAR"
+                prec = 8
+            elif isinstance(siguiente, UnarioArit):
+                op_nombre = "UMINUS"
+                prec = 7
+            else:
+                op_nombre = siguiente.operador
+                prec = siguiente.prioridad
+            reemplazo: Any = Numero(val_num)
+            val_res: Union[bool, int, float] = val_num
+        elif isinstance(siguiente, ComparacionRel):
+            val_bool = evaluar(siguiente, entorno)
+            op_nombre = siguiente.operador
+            prec = 4
+            reemplazo = Constante(val_bool)
+            val_res = val_bool
+        else:
+            val_bool = evaluar(siguiente, entorno)
+            if isinstance(siguiente, Negacion):
+                op_nombre = "NOT"
+                prec = 3
+            elif isinstance(siguiente, Conjuncion):
+                op_nombre = "AND"
+                prec = 2
+            elif isinstance(siguiente, Disyuncion):
+                op_nombre = "OR"
+                prec = 1
+            else:
+                op_nombre = "CONST"
+                prec = 4
+            reemplazo = Constante(val_bool)
+            val_res = val_bool
+
         arbol_actual, _ = _reemplazar_subarbol_una_vez(
-            arbol_actual, siguiente, Constante(val)
+            arbol_actual, siguiente, reemplazo
         )
         exp_actual_txt = (
             arbol_actual.a_texto()
@@ -370,7 +516,7 @@ def trazar_evaluacion(
             operador=op_nombre,
             precedencia=prec,
             subexpresion=sub_txt,
-            resultado=val,
+            resultado=val_res,
             expresion_actual=exp_actual_txt,
         )
         pasos.append(paso)
@@ -407,7 +553,11 @@ def formatear_traza(traza: TrazaEvaluacion, con_arbol: bool = True) -> str:
     ])
 
     for paso in traza.pasos:
-        val_str = formatear_booleano(paso.resultado)
+        val_str = (
+            formatear_booleano(paso.resultado)
+            if isinstance(paso.resultado, bool)
+            else str(paso.resultado)
+        )
         lineas.append(f" {paso.numero:2d}. [{paso.operador:3s}] {paso.subexpresion} => {val_str}")
         lineas.append(f"     Estado: {paso.expresion_actual}")
 
@@ -418,15 +568,6 @@ def formatear_traza(traza: TrazaEvaluacion, con_arbol: bool = True) -> str:
 def verificar_numeral2(estilo_arbol: str = "unicode") -> dict[str, Any]:
     """
     Verifica automáticamente las 3 expresiones del Numeral 2 (E1, E2 y E3).
-
-    - E1: 'not (true and false) or false and not false' (válida, evalúa a true)
-    - E2: 'not not (false or true and not false) and (true or false) and not (true and true)' (válida, evalúa a false)
-    - E3: '(true or not false) and not or false' (inválida, error sintáctico en token 'or', col 29)
-
-    Parámetros:
-        estilo_arbol: "unicode" o "ascii" para el árbol embebido en cada traza.
-
-    Retorna un diccionario estructurado con los resultados, trazas y mensajes.
     """
     if estilo_arbol not in ("unicode", "ascii"):
         raise ValueError(
@@ -441,7 +582,6 @@ def verificar_numeral2(estilo_arbol: str = "unicode") -> dict[str, Any]:
 
     resultados: dict[str, Any] = {}
 
-    # E1
     traza_e1 = trazar_evaluacion(e1_texto, estilo_arbol=estilo_arbol)
     resultados["E1"] = {
         "texto": e1_texto,
@@ -453,7 +593,6 @@ def verificar_numeral2(estilo_arbol: str = "unicode") -> dict[str, Any]:
         "total_pasos": traza_e1.total_pasos,
     }
 
-    # E2
     traza_e2 = trazar_evaluacion(e2_texto, estilo_arbol=estilo_arbol)
     resultados["E2"] = {
         "texto": e2_texto,
@@ -465,7 +604,6 @@ def verificar_numeral2(estilo_arbol: str = "unicode") -> dict[str, Any]:
         "total_pasos": traza_e2.total_pasos,
     }
 
-    # E3 (debe fallar con error de sintaxis en col 29 ante 'or')
     try:
         parsear_expresion(e3_texto)
         fallo_sintactico = False

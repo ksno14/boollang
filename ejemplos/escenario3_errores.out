@@ -1,0 +1,12 @@
+# Evaluaciones de: ejemplos/escenario3_errores.rel
+[L2] X = 10; Y = 4; Z = 3 => [Entorno: X=10, Y=4, Z=3]
+[L5] 2X - Y == 16 => true (16 == 16)
+[L8] W + 1 <= 20 => ERROR semantico: variable 'W' no definida
+[L11] (3X + 5Y) <= X / (3 - Z) => ERROR semantico: division por cero en 'X/(3-Z)'
+[L14] X < Y < Z => ERROR sintactico (col 7): token inesperado '<'
+[L15] (X + 2Y) <= <= 5 => ERROR sintactico (col 13): token inesperado '<='
+[L18] X + 1 @ 2 => ERROR lexico (col 7): caracter ilegal '@'
+[L19] X $ 5 == 10 => ERROR lexico (col 3): caracter ilegal '$'
+[L22] Z = 1 => [Entorno: Z=1]
+[L23] (X + Y) / (3 - Z) == 7 and not false => true
+# Resumen: 10 lineas procesadas | 2 asignaciones | 2 expresiones evaluadas | 6 con error

@@ -131,3 +131,50 @@ def test_e3_prefijo_viable():
 def test_informe_coincide_con_salida_guardada():
     with open(os.path.join(RAIZ, 'docs', 'numeral2', 'salida_numeral2.txt'), encoding='utf-8') as f:
         assert f.read() == n2.informe()
+
+
+class TestNumeral2RelacionalTarea37:
+    """Verificacion formal de derivaciones relacionales (Tarea 37)."""
+
+    def test_r1_enunciado_23_pasos(self):
+        from docs.numeral2.derivaciones_relacionales import (
+            ENTORNO_PRUEBA,
+            R1,
+            arbol_concreto_de,
+            derivacion_izquierda_rel,
+            terminales_rel_de,
+        )
+        from boollang.evaluador import evaluar
+        from boollang.parser import parsear_programa
+
+        pasos = derivacion_izquierda_rel(arbol_concreto_de(R1))
+        assert len(pasos) - 1 == 23
+        assert pasos[-1][0] == terminales_rel_de(R1)
+        prog = parsear_programa(R1)
+        assert evaluar(prog.sentencias[0].arbol, ENTORNO_PRUEBA) is False
+
+    def test_r2_compuesta_45_pasos(self):
+        from docs.numeral2.derivaciones_relacionales import (
+            ENTORNO_PRUEBA,
+            R2,
+            arbol_concreto_de,
+            derivacion_izquierda_rel,
+            terminales_rel_de,
+        )
+        from boollang.evaluador import evaluar
+        from boollang.parser import parsear_programa
+
+        pasos = derivacion_izquierda_rel(arbol_concreto_de(R2))
+        assert len(pasos) - 1 == 45
+        assert pasos[-1][0] == terminales_rel_de(R2)
+        prog = parsear_programa(R2)
+        assert evaluar(prog.sentencias[0].arbol, ENTORNO_PRUEBA) is True
+
+    def test_r3_bloqueo_sintactico_doble_relacional(self):
+        from docs.numeral2.derivaciones_relacionales import verificar_bloqueo_r3
+
+        info = verificar_bloqueo_r3()
+        assert info["error"] is not None
+        assert info["le_en_primeros_expa"] is False
+        assert "col 12" in info["error"]
+        assert "'<='" in info["error"]

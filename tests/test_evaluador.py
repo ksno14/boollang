@@ -299,8 +299,85 @@ class TestCLI:
             [sys.executable, "-m", "boollang", "--help"],
             capture_output=True,
             text=True,
+            cwd=Path(__file__).resolve().parents[1],
             check=False,
         )
         assert proc.returncode == 0
         assert "-o" in proc.stdout
         assert "--salida" in proc.stdout
+
+
+from boollang import (
+    Asignacion,
+    BinOpArit,
+    ComparacionRel,
+    ErrorSemantico,
+    Numero,
+    UnarioArit,
+    Variable,
+    evaluar_aritmetica,
+)
+
+
+class TestEvaluadorRelacionalTarea37:
+    """Pruebas del evaluador semántico, entorno de variables y CLI para la Tarea 37 (Integrante 4)."""
+
+    def test_evaluar_aritmetica_y_entorno(self):
+        env = {"X": 2, "Y": 1, "Z": 2}
+        # 3X + 5Y = 11
+        lhs = BinOpArit(
+            "+",
+            BinOpArit("*", Numero(3), Variable("X"), implicita=True),
+            BinOpArit("*", Numero(5), Variable("Y"), implicita=True),
+        )
+        # X / (3 - Z) = 2.0
+        rhs = BinOpArit("/", Variable("X"), BinOpArit("-", Numero(3), Variable("Z")))
+        assert evaluar_aritmetica(lhs, env) == 11
+        assert evaluar_aritmetica(rhs, env) == 2.0
+
+        comp = ComparacionRel("<=", lhs, rhs)
+        assert evaluar(comp, env) is False
+
+    def test_todos_los_operadores_relacionales(self):
+        assert evaluar(ComparacionRel("<", Numero(2), Numero(5))) is True
+        assert evaluar(ComparacionRel("<=", Numero(5), Numero(5))) is True
+        assert evaluar(ComparacionRel(">", Numero(7), Numero(3))) is True
+        assert evaluar(ComparacionRel(">=", Numero(3), Numero(4))) is False
+        assert evaluar(ComparacionRel("==", Numero(4), Numero(4.0))) is True
+        assert evaluar(ComparacionRel("!=", Numero(4), Numero(5))) is True
+
+    def test_error_semantico_division_por_cero_y_variable_no_definida(self):
+        env = {"X": 2, "Z": 3}
+        div_cero = BinOpArit("/", Variable("X"), BinOpArit("-", Numero(3), Variable("Z")))
+        with pytest.raises(ErrorSemantico, match="division por cero en 'X/\\(3-Z\\)'"):
+            evaluar_aritmetica(div_cero, env)
+
+        with pytest.raises(ErrorSemantico, match="variable 'W' no definida"):
+            evaluar_aritmetica(Variable("W"), env)
+
+    def test_procesar_texto_escenario1_relacional(self):
+        fuente = (
+            "// Definicion de variables\n"
+            "X = 2; Y = 1; Z = 2;\n"
+            "\n"
+            "// 1. Ejemplo exacto del enunciado\n"
+            "(3X+5Y) <= X/(3-Z)\n"
+            "\n"
+            "// 2. Combinacion proposicional relacional + booleana\n"
+            "not ((3X+5Y) <= X/(3-Z)) and (2X + Y == 5) or false\n"
+            "\n"
+            "// 3. Errores controlados\n"
+            "Z = 3;\n"
+            "(3X+5Y) <= X/(3-Z)\n"
+            "(3X+5Y) <= <= 10\n"
+        )
+        salida, resumen = procesar_texto(fuente, nombre_fuente="ejemplos/escenario1_enunciado.rel")
+        assert "[L2] X = 2; Y = 1; Z = 2 => [Entorno: X=2, Y=1, Z=2]" in salida
+        assert "[L5] (3X+5Y) <= X/(3-Z) => false (11 <= 2.0)" in salida
+        assert "[L8] not ((3X+5Y) <= X/(3-Z)) and (2X + Y == 5) or false => true" in salida
+        assert "[L11] Z = 3 => [Entorno: Z=3]" in salida
+        assert "[L12] (3X+5Y) <= X/(3-Z) => ERROR semantico: division por cero en 'X/(3-Z)'" in salida
+        assert "[L13] (3X+5Y) <= <= 10 => ERROR sintactico (col 12): token inesperado '<='" in salida
+        assert "# Resumen: 6 lineas procesadas | 2 asignaciones | 2 expresiones evaluadas | 2 con error" in salida
+        assert (resumen.procesadas, resumen.asignaciones, resumen.evaluadas, resumen.con_error) == (6, 2, 2, 2)
+

@@ -167,10 +167,22 @@ def formatear_salida(ruta_fuente: str, resumen: ResumenEvaluacion) -> str:
     lineas = [f"# Evaluaciones de: {ruta_fuente}"]
     for res in resumen.resultados:
         lineas.append(res.formatear_linea())
-    lineas.append(
-        f"# Resumen: {resumen.procesadas} expresiones procesadas | "
-        f"{resumen.evaluadas} evaluadas | {resumen.con_error} con error"
-    )
+    if (
+        getattr(resumen, "modo_relacional", False)
+        or getattr(resumen, "asignaciones", 0) > 0
+        or str(ruta_fuente).lower().endswith(".rel")
+    ):
+        lineas.append(
+            f"# Resumen: {resumen.procesadas} lineas procesadas | "
+            f"{resumen.asignaciones} asignaciones | "
+            f"{resumen.evaluadas} expresiones evaluadas | "
+            f"{resumen.con_error} con error"
+        )
+    else:
+        lineas.append(
+            f"# Resumen: {resumen.procesadas} expresiones procesadas | "
+            f"{resumen.evaluadas} evaluadas | {resumen.con_error} con error"
+        )
     return "\n".join(lineas) + "\n"
 
 

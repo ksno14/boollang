@@ -1,6 +1,6 @@
 """
-Analizador léxico para expresiones booleanas (boollang).
-Implementado con PLY (ply.lex) siguiendo las especificaciones de la Tarea 36.
+Analizador léxico para expresiones booleanas y proposicionales relacionales (boollang / rellang).
+Implementado con PLY (ply.lex) siguiendo las especificaciones de las Tareas 36 y 37.
 """
 
 import ply.lex as lex
@@ -32,17 +32,35 @@ class LexicalError:
         return False
 
 
-# Lista oficial de tokens para el lenguaje
+# Lista oficial de tokens para el lenguaje (Tarea 36 booleana + Tarea 37 relacional/aritmética)
 tokens = (
+    # Palabras reservadas booleanas (Tarea 36)
     'TRUE',
     'FALSE',
     'AND',
     'OR',
     'NOT',
+    # Delimitadores y separadores
     'LPAREN',
     'RPAREN',
     'PUNTOYCOMA',
     'NEWLINE',
+    # Operadores aritméticos (Tarea 37 - Calculadora LP02)
+    'PLUS',
+    'MINUS',
+    'TIMES',
+    'DIVIDE',
+    # Operadores relacionales (Tarea 37)
+    'LE',
+    'GE',
+    'EQ',
+    'NE',
+    'LT',
+    'GT',
+    # Asignación, literales numéricos e identificadores de variables (Tarea 37)
+    'ASSIGN',
+    'NUMBER',
+    'ID',
 )
 
 # Diccionario de palabras reservadas (solo en minúscula)
@@ -54,7 +72,44 @@ reserved = {
     'not': 'NOT',
 }
 
-# Expresiones regulares para tokens simples de un solo carácter
+# Palabras explícitamente inválidas (variantes en mayúsculas de reservadas u operadores no soportados)
+invalid_words = {
+    'TRUE',
+    'FALSE',
+    'AND',
+    'OR',
+    'NOT',
+    'True',
+    'False',
+    'And',
+    'Or',
+    'Not',
+    'xor',
+    'XOR',
+    'nand',
+    'NAND',
+    'nor',
+    'NOR',
+    'BADWORD',
+    'invalida',
+}
+
+# Expresiones regulares para operadores relacionales de dos caracteres (prioridad por longitud)
+t_LE = r'<='
+t_GE = r'>='
+t_EQ = r'=='
+t_NE = r'!='
+
+# Expresiones regulares para operadores relacionales, asignación y aritméticos de un carácter
+t_LT = r'<'
+t_GT = r'>'
+t_ASSIGN = r'='
+t_PLUS = r'\+'
+t_MINUS = r'-'
+t_TIMES = r'\*'
+t_DIVIDE = r'/'
+
+# Expresiones regulares para delimitadores simples
 t_LPAREN = r'\('
 t_RPAREN = r'\)'
 t_PUNTOYCOMA = r';'
@@ -89,6 +144,13 @@ def t_COMMENT_SINGLE(t):
     pass
 
 
+# Regla para constantes numéricas enteras y de punto flotante (Tarea 37)
+def t_NUMBER(t):
+    r'\d+(?:\.\d+)?'
+    t.value = float(t.value) if '.' in t.value else int(t.value)
+    return t
+
+
 # Regla para saltos de línea y conteo de líneas
 def t_NEWLINE(t):
     r'\n'
@@ -96,15 +158,13 @@ def t_NEWLINE(t):
     return t
 
 
-# Regla para palabras reservadas e identificadores no válidos
+# Regla para palabras reservadas, identificadores de variables (ID) y palabras no válidas
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
     if t.value in reserved:
         t.type = reserved[t.value]
         return t
-    else:
-        # Cualquier palabra que no coincida exactamente con las reservadas en minúscula
-        # (por ejemplo TRUE, xor, False, ident) es un error léxico.
+    if t.value in invalid_words or t.value.lower() in reserved:
         col = find_column(t.lexer.lexdata, t)
         msg = f"ERROR lexico (col {col}): palabra no valida '{t.value}'"
         error = LexicalError(
@@ -117,6 +177,8 @@ def t_ID(t):
             t.lexer.errors.append(error)
         # Se omite el token (skip) sin detener el análisis
         return None
+    t.type = 'ID'
+    return t
 
 
 # Manejo de caracteres ilegales

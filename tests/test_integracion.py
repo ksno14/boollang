@@ -260,3 +260,86 @@ class TestIntegracionExhaustivaYCLI:
         assert "[L1] true or false => true" in contenido
         assert "[L2] not true => false" in contenido
         assert "# Resumen: 2 expresiones procesadas | 2 evaluadas | 0 con error" in contenido
+
+
+# ==============================================================================
+# 4. Integracion extremo a extremo de expresiones relacionales (Tarea 37)
+# ==============================================================================
+
+
+class TestIntegracionRelacionalTarea37:
+    """Valida el paquete rellang, CLI -m rellang y los 3 escenarios .rel (Integrante 7)."""
+
+    @staticmethod
+    def _ejecutar_rellang_cli(*args: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            [sys.executable, "-m", "rellang", *args],
+            cwd=str(RAIZ_REPO),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            check=False,
+        )
+
+    def test_paquete_rellang_y_expresion_directa_cli(self) -> None:
+        import rellang
+
+        assert hasattr(rellang, "ParserRellang")
+        proc = self._ejecutar_rellang_cli("-e", "X = 2; Y = 1; Z = 2; (3X+5Y) <= X/(3-Z)", "--traza", "--ascii")
+        assert proc.returncode == 0
+        assert "Resultado final:    false" in proc.stdout
+        assert "Pasos de reduccion (8 pasos):" in proc.stdout
+
+    def test_escenario1_enunciado_rel_archivo_y_cli_con_traza(self, tmp_path: Path) -> None:
+        fuente = DIR_EJEMPLOS / "escenario1_enunciado.rel"
+        salida = tmp_path / "escenario1_enunciado.out"
+
+        resumen = procesar_archivo(fuente, salida)
+        assert resumen.procesadas == 6
+        assert resumen.asignaciones == 2
+        assert resumen.evaluadas == 2
+        assert resumen.con_error == 2
+
+        contenido = salida.read_text(encoding="utf-8")
+        assert "[L5] (3X+5Y) <= X/(3-Z) => false (11 <= 2.0)" in contenido
+        assert "[L8] not ((3X+5Y) <= X/(3-Z)) and (2X + Y == 5) or false => true" in contenido
+        assert "ERROR semantico: division por cero en 'X/(3-Z)'" in contenido
+        assert "ERROR sintactico (col 12): token inesperado '<='" in contenido
+        assert "# Resumen: 6 lineas procesadas | 2 asignaciones | 2 expresiones evaluadas | 2 con error" in contenido
+
+        proc = self._ejecutar_rellang_cli(str(fuente), "-o", str(tmp_path / "cli1.out"), "--traza", "--ascii")
+        assert proc.returncode == 0
+        assert "Resultado final:    false" in proc.stdout
+        assert "Resultado final:    true" in proc.stdout
+
+    def test_escenario2_combinado_rel_todos_los_operadores(self, tmp_path: Path) -> None:
+        fuente = DIR_EJEMPLOS / "escenario2_combinado.rel"
+        salida = tmp_path / "escenario2_combinado.out"
+
+        resumen = procesar_archivo(fuente, salida)
+        assert resumen.procesadas == 13
+        assert resumen.asignaciones == 2
+        assert resumen.evaluadas == 11
+        assert resumen.con_error == 0
+        contenido = salida.read_text(encoding="utf-8")
+        assert "# Resumen: 13 lineas procesadas | 2 asignaciones | 11 expresiones evaluadas | 0 con error" in contenido
+
+    def test_escenario3_errores_rel_tres_clases_y_recuperacion(self, tmp_path: Path) -> None:
+        fuente = DIR_EJEMPLOS / "escenario3_errores.rel"
+        salida = tmp_path / "escenario3_errores.out"
+
+        resumen = procesar_archivo(fuente, salida)
+        assert resumen.procesadas == 10
+        assert resumen.asignaciones == 2
+        assert resumen.evaluadas == 2
+        assert resumen.con_error == 6
+
+        contenido = salida.read_text(encoding="utf-8")
+        assert "ERROR semantico: variable 'W' no definida" in contenido
+        assert "ERROR semantico: division por cero en 'X/(3-Z)'" in contenido
+        assert "ERROR sintactico (col 7): token inesperado '<'" in contenido
+        assert "ERROR sintactico (col 13): token inesperado '<='" in contenido
+        assert "ERROR lexico (col 7): caracter ilegal '@'" in contenido
+        assert "ERROR lexico (col 3): caracter ilegal '$'" in contenido
+        assert "[L23] (X + Y) / (3 - Z) == 7 and not false => true" in contenido

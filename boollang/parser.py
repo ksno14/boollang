@@ -86,16 +86,23 @@ from .lexer import t_COMMENT_MULTI, t_COMMENT_SINGLE
 from .lexer import build_lexer, find_column
 from .lexer import tokens as _TOKENS
 from .nodos import (
+    Asignacion,
+    BinOpArit,
+    ComparacionRel,
     Conjuncion,
     Constante,
     Disyuncion,
+    ExprArit,
     ExprBool,
     Negacion,
+    Numero,
     Programa,
     Sentencia,
+    UnarioArit,
+    Variable,
 )
 
-__all__ = ["ParserBoollang", "parsear_programa"]
+__all__ = ["ParserBoollang", "ParserRellang", "parsear_programa"]
 
 _TERMINADORES = frozenset({"NEWLINE", "PUNTOYCOMA"})
 
@@ -297,15 +304,89 @@ class ParserBoollang:
         p[0] = Constante(False)
 
     # ------------------------------------------------------------------
-    # Programa y Sentencia
+    # Tarea 37: Extensión relacional y aritmética (reglas 9 a 28)
     # ------------------------------------------------------------------
+
+    def p_FactB_exprel(self, p):
+        'FactB : ExpRel'
+        p[0] = p[1]
+
+    def p_ExpRel(self, p):
+        'ExpRel : ExpA OpRel ExpA'
+        p[0] = ComparacionRel(p[2], p[1], p[3])
+
+    def p_OpRel(self, p):
+        '''OpRel : LE
+                 | GE
+                 | EQ
+                 | NE
+                 | LT
+                 | GT'''
+        p[0] = p[1]
+
+    def p_ExpA_plus(self, p):
+        'ExpA : ExpA PLUS TermA'
+        p[0] = BinOpArit("+", p[1], p[3])
+
+    def p_ExpA_minus(self, p):
+        'ExpA : ExpA MINUS TermA'
+        p[0] = BinOpArit("-", p[1], p[3])
+
+    def p_ExpA_TermA(self, p):
+        'ExpA : TermA'
+        p[0] = p[1]
+
+    def p_TermA_times(self, p):
+        'TermA : TermA TIMES FactA'
+        p[0] = BinOpArit("*", p[1], p[3])
+
+    def p_TermA_divide(self, p):
+        'TermA : TermA DIVIDE FactA'
+        p[0] = BinOpArit("/", p[1], p[3])
+
+    def p_TermA_implicita_id(self, p):
+        'TermA : NUMBER ID'
+        p[0] = BinOpArit("*", Numero(p[1]), Variable(p[2]), implicita=True)
+
+    def p_TermA_implicita_paren(self, p):
+        'TermA : NUMBER LPAREN ExpA RPAREN'
+        p[0] = BinOpArit("*", Numero(p[1]), p[3], implicita=True)
+
+    def p_TermA_FactA(self, p):
+        'TermA : FactA'
+        p[0] = p[1]
+
+    def p_FactA_uminus(self, p):
+        'FactA : MINUS FactA'
+        p[0] = UnarioArit(p[2])
+
+    def p_FactA_paren(self, p):
+        'FactA : LPAREN ExpA RPAREN'
+        p[0] = p[2]
+
+    def p_FactA_number(self, p):
+        'FactA : NUMBER'
+        p[0] = Numero(p[1])
+
+    def p_FactA_id(self, p):
+        'FactA : ID'
+        p[0] = Variable(p[1])
+
+    # ------------------------------------------------------------------
+    # Programa, Asignación y Sentencia
+    # ------------------------------------------------------------------
+
+    def p_Asignacion(self, p):
+        'Asignacion : ID ASSIGN ExpA'
+        p[0] = Asignacion(p[1], p[3])
 
     def p_Programa(self, p):
         'Programa : Sentencias'
         p[0] = Programa(p[1])
 
     def p_Programa_ultima_sin_terminador(self, p):
-        'Programa : Sentencias ExpB'
+        '''Programa : Sentencias ExpB
+                    | Sentencias Asignacion'''
         p[1].append(self._sentencia_final(arbol=p[2]))
         p[0] = Programa(p[1])
 
@@ -322,7 +403,9 @@ class ParserBoollang:
 
     def p_Sentencia_expresion(self, p):
         '''Sentencia : ExpB NEWLINE
-                     | ExpB PUNTOYCOMA'''
+                     | ExpB PUNTOYCOMA
+                     | Asignacion NEWLINE
+                     | Asignacion PUNTOYCOMA'''
         p[0] = self._sentencia(p.slice[2], arbol=p[1])
 
     def p_Sentencia_vacia(self, p):
@@ -388,6 +471,7 @@ class ParserBoollang:
         )
 
 
+ParserRellang = ParserBoollang
 _parser_por_defecto: Optional[ParserBoollang] = None
 
 

@@ -127,6 +127,32 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # 2. Modo Expresión directa en línea de comandos
     if args.expresion is not None:
         try:
+            if ";" in args.expresion or "=" in args.expresion:
+                from .parser import parsear_programa
+                from .evaluador import evaluar_programa, ErrorSemantico
+
+                prog = parsear_programa(args.expresion)
+                res_prog = evaluar_programa(prog)
+                if res_prog.con_error > 0:
+                    for r in res_prog.resultados:
+                        if r.es_error:
+                            print(f"Error: {r.error}", file=sys.stderr)
+                    return 1
+                ult = res_prog.resultados[-1]
+                if args.traza and ult.arbol is not None and not ult.es_asignacion:
+                    traza = trazar_evaluacion(
+                        ult.arbol,
+                        texto_original=ult.texto,
+                        estilo_arbol=estilo,
+                        entorno=res_prog.entorno,
+                    )
+                    print(formatear_traza(traza))
+                elif ult.valor is not None:
+                    print(formatear_booleano(ult.valor))
+                else:
+                    print(ult.entorno_asignado or "")
+                return 0
+
             if args.traza:
                 traza = trazar_evaluacion(args.expresion, estilo_arbol=estilo)
                 print(formatear_traza(traza))
@@ -136,7 +162,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 valor = evaluar(arbol)
                 print(formatear_booleano(valor))
             return 0
-        except SyntaxError as exc:
+        except Exception as exc:
             print(f"Error: {exc}", file=sys.stderr)
             return 1
 
@@ -170,21 +196,39 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             print("\n" + "=" * 78)
             print(f"TRAZA DETALLADA DE EVALUACIÓN (opción --traza): {args.fuente}")
             print("=" * 78)
+            entorno_traza: dict[str, int | float] = {}
             for res in resumen.resultados:
+                if getattr(res, "es_asignacion", False):
+                    asig_txt = res.entorno_asignado or ""
+                    if asig_txt.startswith("[Entorno:") and asig_txt.endswith("]"):
+                        cuerpo = asig_txt[len("[Entorno:"):-1].strip()
+                        for par in cuerpo.split(","):
+                            if "=" in par:
+                                k, v = par.split("=", 1)
+                                k, v = k.strip(), v.strip()
+                                try:
+                                    entorno_traza[k] = float(v) if ("." in v or "e" in v.lower()) else int(v)
+                                except ValueError:
+                                    pass
+                    print(f"\n[Línea {res.linea}] {res.texto} => {res.entorno_asignado}")
+                    continue
                 if not res.es_error:
                     try:
                         if res.arbol is not None:
-                            # Reutiliza el AST construido durante el análisis
                             sentencia = Sentencia(
                                 linea=res.linea, texto=res.texto, arbol=res.arbol
                             )
-                            _, traza = evaluar_con_traza(sentencia, estilo_arbol=estilo)
+                            _, traza = evaluar_con_traza(
+                                sentencia, estilo_arbol=estilo, entorno=entorno_traza
+                            )
                         else:
-                            # Respaldo: el AST no está disponible, reparsear el texto
-                            traza = trazar_evaluacion(res.texto, estilo_arbol=estilo)
+                            traza = trazar_evaluacion(
+                                res.texto, estilo_arbol=estilo, entorno=entorno_traza
+                            )
                         print(f"\n[Línea {res.linea}] {res.texto}")
-                        print(formatear_traza(traza))
-                    except SyntaxError as exc:
+                        if traza is not None:
+                            print(formatear_traza(traza))
+                    except Exception as exc:
                         print(f"[Línea {res.linea}] No fue posible generar traza: {exc}")
                 else:
                     print(f"\n[Línea {res.linea}] {res.texto}")

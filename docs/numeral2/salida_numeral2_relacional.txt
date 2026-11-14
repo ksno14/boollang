@@ -1,0 +1,78 @@
+=== R1: (3X+5Y) <= X/(3-Z) (23 pasos =>lm) ===
+          ExpB
+ 1. P2 => TermB
+ 2. P4 => FactB
+ 3. P9 => ExpRel
+ 4. P10=> ExpA OpRel ExpA
+ 5. P19=> TermA OpRel ExpA
+ 6. P24=> FactA OpRel ExpA
+ 7. P26=> ( ExpA ) OpRel ExpA
+ 8. P17=> ( ExpA + TermA ) OpRel ExpA
+ 9. P19=> ( TermA + TermA ) OpRel ExpA
+10. P22=> ( NUMBER ID + TermA ) OpRel ExpA
+11. P22=> ( NUMBER ID + NUMBER ID ) OpRel ExpA
+12. P11=> ( NUMBER ID + NUMBER ID ) <= ExpA
+13. P19=> ( NUMBER ID + NUMBER ID ) <= TermA
+14. P21=> ( NUMBER ID + NUMBER ID ) <= TermA / FactA
+15. P24=> ( NUMBER ID + NUMBER ID ) <= FactA / FactA
+16. P28=> ( NUMBER ID + NUMBER ID ) <= ID / FactA
+17. P26=> ( NUMBER ID + NUMBER ID ) <= ID / ( ExpA )
+18. P18=> ( NUMBER ID + NUMBER ID ) <= ID / ( ExpA - TermA )
+19. P19=> ( NUMBER ID + NUMBER ID ) <= ID / ( TermA - TermA )
+20. P24=> ( NUMBER ID + NUMBER ID ) <= ID / ( FactA - TermA )
+21. P27=> ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - TermA )
+22. P24=> ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - FactA )
+23. P28=> ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID )
+Resultado con {'X': 2, 'Y': 1, 'Z': 2}: false
+
+=== R2: not ((3X+5Y) <= X/(3-Z)) and (2X + Y == 5) or false (45 pasos =>lm) ===
+          ExpB
+ 1. P1 => ExpB or TermB
+ 2. P2 => TermB or TermB
+ 3. P3 => TermB and FactB or TermB
+ 4. P4 => FactB and FactB or TermB
+ 5. P5 => not FactB and FactB or TermB
+ 6. P6 => not ( ExpB ) and FactB or TermB
+ 7. P2 => not ( TermB ) and FactB or TermB
+ 8. P4 => not ( FactB ) and FactB or TermB
+ 9. P9 => not ( ExpRel ) and FactB or TermB
+10. P10=> not ( ExpA OpRel ExpA ) and FactB or TermB
+11. P19=> not ( TermA OpRel ExpA ) and FactB or TermB
+12. P24=> not ( FactA OpRel ExpA ) and FactB or TermB
+13. P26=> not ( ( ExpA ) OpRel ExpA ) and FactB or TermB
+14. P17=> not ( ( ExpA + TermA ) OpRel ExpA ) and FactB or TermB
+15. P19=> not ( ( TermA + TermA ) OpRel ExpA ) and FactB or TermB
+16. P22=> not ( ( NUMBER ID + TermA ) OpRel ExpA ) and FactB or TermB
+17. P22=> not ( ( NUMBER ID + NUMBER ID ) OpRel ExpA ) and FactB or TermB
+18. P11=> not ( ( NUMBER ID + NUMBER ID ) <= ExpA ) and FactB or TermB
+19. P19=> not ( ( NUMBER ID + NUMBER ID ) <= TermA ) and FactB or TermB
+20. P21=> not ( ( NUMBER ID + NUMBER ID ) <= TermA / FactA ) and FactB or TermB
+21. P24=> not ( ( NUMBER ID + NUMBER ID ) <= FactA / FactA ) and FactB or TermB
+22. P28=> not ( ( NUMBER ID + NUMBER ID ) <= ID / FactA ) and FactB or TermB
+23. P26=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( ExpA ) ) and FactB or TermB
+24. P18=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( ExpA - TermA ) ) and FactB or TermB
+25. P19=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( TermA - TermA ) ) and FactB or TermB
+26. P24=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( FactA - TermA ) ) and FactB or TermB
+27. P27=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - TermA ) ) and FactB or TermB
+28. P24=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - FactA ) ) and FactB or TermB
+29. P28=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and FactB or TermB
+30. P6 => not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( ExpB ) or TermB
+31. P2 => not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( TermB ) or TermB
+32. P4 => not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( FactB ) or TermB
+33. P9 => not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( ExpRel ) or TermB
+34. P10=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( ExpA OpRel ExpA ) or TermB
+35. P17=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( ExpA + TermA OpRel ExpA ) or TermB
+36. P19=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( TermA + TermA OpRel ExpA ) or TermB
+37. P22=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( NUMBER ID + TermA OpRel ExpA ) or TermB
+38. P24=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( NUMBER ID + FactA OpRel ExpA ) or TermB
+39. P28=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( NUMBER ID + ID OpRel ExpA ) or TermB
+40. P13=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( NUMBER ID + ID == ExpA ) or TermB
+41. P19=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( NUMBER ID + ID == TermA ) or TermB
+42. P24=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( NUMBER ID + ID == FactA ) or TermB
+43. P27=> not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( NUMBER ID + ID == NUMBER ) or TermB
+44. P4 => not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( NUMBER ID + ID == NUMBER ) or FactB
+45. P8 => not ( ( NUMBER ID + NUMBER ID ) <= ID / ( NUMBER - ID ) ) and ( NUMBER ID + ID == NUMBER ) or false
+Resultado con {'X': 2, 'Y': 1, 'Z': 2}: true
+
+=== R3: (3X+5Y) <= <= 10 ===
+Bloqueo: ERROR sintactico (col 12): token inesperado '<='

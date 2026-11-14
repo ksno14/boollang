@@ -1,0 +1,8 @@
+# Evaluaciones de: ejemplos/escenario1_enunciado.rel
+[L2] X = 2; Y = 1; Z = 2 => [Entorno: X=2, Y=1, Z=2]
+[L5] (3X+5Y) <= X/(3-Z) => false (11 <= 2.0)
+[L8] not ((3X+5Y) <= X/(3-Z)) and (2X + Y == 5) or false => true
+[L11] Z = 3 => [Entorno: Z=3]
+[L12] (3X+5Y) <= X/(3-Z) => ERROR semantico: division por cero en 'X/(3-Z)'
+[L13] (3X+5Y) <= <= 10 => ERROR sintactico (col 12): token inesperado '<='
+# Resumen: 6 lineas procesadas | 2 asignaciones | 2 expresiones evaluadas | 2 con error

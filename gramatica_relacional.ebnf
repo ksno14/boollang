@@ -1,0 +1,126 @@
+(* ====================================================================== *)
+(*  gramatica_relacional.ebnf -- Lenguaje boollang / rellang (Tarea 37)   *)
+(*  Extension de la GLC de la Figura 3 (Tarea 36) con la calculadora      *)
+(*  aritmetica (LP02) para proposiciones relacionales y asignaciones.     *)
+(*                                                                        *)
+(*  Incluye tanto la notacion E-BNF de la Figura 2 (W3C: ::=, *, ?, ' ')  *)
+(*  como la notacion ISO/IEC 14977 (=, { }, [ ], " ", ;).                 *)
+(*                                                                        *)
+(*  Jerarquia completa de precedencia (7 niveles, de menor a mayor):      *)
+(*    Nivel 1: or                                  (disyuncion logica)    *)
+(*    Nivel 2: and                                 (conjuncion logica)    *)
+(*    Nivel 3: not                                 (negacion logica)      *)
+(*    Nivel 4: <=, >=, ==, !=, <, >                (comparacion rel.)     *)
+(*    Nivel 5: +, -                                (aditivo aritmetico)   *)
+(*    Nivel 6: *, /, multiplicacion implicita (3X) (multiplicativo arit.) *)
+(*    Nivel 7: unario -                            (negacion aritmetica)  *)
+(* ====================================================================== *)
+
+
+/* ============================================================================
+   A. Notacion E-BNF Estandar Figura 2 (W3C -- ::=/' '/+/*/?)
+   ============================================================================
+   Programa   ::= Sentencia* ( Asignacion | ExpB )?
+   Sentencia  ::= ( Asignacion | ExpB )? ( ';' | #xA )
+   Asignacion ::= ID '=' ExpA
+
+   ExpB       ::= ExpB 'or' TermB | TermB
+   TermB      ::= TermB 'and' FactB | FactB
+   FactB      ::= 'not' FactB
+                | '(' ExpB ')'
+                | 'true'
+                | 'false'
+                | ExpRel
+
+   ExpRel     ::= ExpA OpRel ExpA
+   OpRel      ::= '<=' | '>=' | '==' | '!=' | '<' | '>'
+
+   ExpA       ::= ExpA '+' TermA
+                | ExpA '-' TermA
+                | TermA
+   TermA      ::= TermA '*' FactA
+                | TermA '/' FactA
+                | NUMBER ID
+                | NUMBER '(' ExpA ')'
+                | FactA
+   FactA      ::= '-' FactA
+                | '(' ExpA ')'
+                | NUMBER
+                | ID
+   ============================================================================ */
+
+
+(* ---------------------------------------------------------------------- *)
+(*  1. Nivel Booleano (Heredado de la Figura 3 - Tarea 36)                 *)
+(* ---------------------------------------------------------------------- *)
+
+expb  = termb, { "or", termb } ;
+
+termb = factb, { "and", factb } ;
+
+factb = "not", factb
+      | "(", expb, ")"
+      | "true"
+      | "false"
+      | exprel ;
+
+
+(* ---------------------------------------------------------------------- *)
+(*  2. Nivel Proposicional Relacional (Puente entre Booleano y Aritmetico)*)
+(* ---------------------------------------------------------------------- *)
+
+exprel = expa, oprel, expa ;
+
+oprel  = "<=" | ">=" | "==" | "!=" | "<" | ">" ;
+
+
+(* ---------------------------------------------------------------------- *)
+(*  3. Nivel Aritmetico Algebraico (LP02 + Multiplicacion Implicita 3X)   *)
+(* ---------------------------------------------------------------------- *)
+
+expa  = terma, { ( "+" | "-" ), terma } ;
+
+terma = ( facta | mult_implicita ), { ( "*" | "/" ), facta } ;
+
+mult_implicita = numero, identificador
+               | numero, "(", expa, ")" ;
+
+facta = "-", facta
+      | "(", expa, ")"
+      | numero
+      | identificador ;
+
+
+(* ---------------------------------------------------------------------- *)
+(*  4. Nivel de Programa (Asignaciones de variables + Evaluacion)         *)
+(* ---------------------------------------------------------------------- *)
+
+programa   = { sentencia }, [ asignacion | expb ] ;
+
+sentencia  = [ asignacion | expb ], terminador ;
+
+asignacion = identificador, "=", expa ;
+
+terminador = ";" | salto_linea ;
+
+
+(* ---------------------------------------------------------------------- *)
+(*  5. Nivel Lexico (tokens de boollang/lexer.py)                         *)
+(* ---------------------------------------------------------------------- *)
+
+palabra_reservada = "true" | "false" | "and" | "or" | "not" ;
+
+identificador     = ( letra | "_" ), { letra | digito | "_" } - palabra_reservada ;
+
+numero            = digito, { digito }, [ ".", digito, { digito } ] ;
+
+letra  = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k"
+       | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v"
+       | "w" | "x" | "y" | "z"
+       | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K"
+       | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V"
+       | "W" | "X" | "Y" | "Z" ;
+
+digito = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+
+salto_linea = ? caracter de nueva linea, U+000A ? ;

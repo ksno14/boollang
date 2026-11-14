@@ -1,5 +1,5 @@
 """
-boollang - Lenguaje para expresiones booleanas.
+boollang / rellang - Lenguaje para expresiones booleanas y proposicionales relacionales.
 """
 
 from .archivo import (
@@ -9,9 +9,11 @@ from .archivo import (
     procesar_texto,
 )
 from .evaluador import (
+    ErrorSemantico,
     ResultadoSentencia,
     ResumenEvaluacion,
     evaluar,
+    evaluar_aritmetica,
     evaluar_con_traza,
     evaluar_programa,
     evaluar_sentencia,
@@ -21,22 +23,33 @@ from .lexer import (
     LexicalError,
     build_lexer,
     find_column,
+    invalid_words,
     lexer,
     reserved,
     tokenize,
     tokens,
 )
 from .nodos import (
+    Asignacion,
+    BinOpArit,
+    ComparacionRel,
     Conjuncion,
     Constante,
     Disyuncion,
+    ExprArit,
     ExprBool,
     Negacion,
+    NodoAST,
+    Numero,
     Programa,
+    Relacional,
     Sentencia,
+    UnarioArit,
+    Variable,
 )
 from .parser import (
     ParserBoollang,
+    ParserRellang,
     parsear_programa,
 )
 from .traza import (
@@ -54,6 +67,7 @@ __all__ = [
     "lexer",
     "tokens",
     "reserved",
+    "invalid_words",
     "find_column",
     "LexicalError",
     "tokenize",
@@ -61,14 +75,26 @@ __all__ = [
     "Negacion",
     "Conjuncion",
     "Disyuncion",
+    "Numero",
+    "Variable",
+    "UnarioArit",
+    "BinOpArit",
+    "ComparacionRel",
+    "Relacional",
+    "Asignacion",
+    "ExprArit",
     "ExprBool",
+    "NodoAST",
     "Sentencia",
     "Programa",
     "ParserBoollang",
+    "ParserRellang",
     "parsear_programa",
+    "ErrorSemantico",
     "ResultadoSentencia",
     "ResumenEvaluacion",
     "evaluar",
+    "evaluar_aritmetica",
     "evaluar_programa",
     "evaluar_sentencia",
     "evaluar_con_traza",

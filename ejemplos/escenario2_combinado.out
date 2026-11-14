@@ -1,0 +1,15 @@
+# Evaluaciones de: ejemplos/escenario2_combinado.rel
+[L2] A = 4; B = 2.5; C = -3 => [Entorno: A=4, B=2.5, C=-3]
+[L5] 2A < 10 => true (8 < 10)
+[L6] A + B <= 6.5 => true (6.5 <= 6.5)
+[L7] 3A - 2B > 6 => true (7.0 > 6)
+[L8] 2(B + 1) >= 7 => true (7.0 >= 7)
+[L9] 4B == 10 => true (10.0 == 10)
+[L10] C != 3 => true (-3 != 3)
+[L13] -C == 3 and 2A + 1 >= 9 => true
+[L14] false or 2(A - 1) == 6 and not (B < 2) => true
+[L15] (A + 2) * B <= 15 or A / 2 == 1 => true
+[L18] C = 10 => [Entorno: C=10]
+[L19] C / 2 == 5 and (true or false) => true
+[L20] not false and true => true
+# Resumen: 13 lineas procesadas | 2 asignaciones | 11 expresiones evaluadas | 0 con error

@@ -149,3 +149,63 @@ def test_completitud_funcional_16_funciones(lalr):
     resultados = glc.verificar_completitud_funcional(lalr['parser'])
     assert len(resultados) == 16
     assert all(ok for *_, ok in resultados)
+
+
+# ---------------------------------------------------------------------------
+# Tarea 37 - Numeral 1: Extension de la GLC para expresiones relacionales
+# ---------------------------------------------------------------------------
+
+RUTA_REL = os.path.join(RAIZ, 'docs', 'numeral1', 'verificar_glc_relacional.py')
+_spec_rel = importlib.util.spec_from_file_location('verificar_glc_relacional', RUTA_REL)
+glc_rel = importlib.util.module_from_spec(_spec_rel)
+sys.modules['verificar_glc_relacional'] = glc_rel
+_spec_rel.loader.exec_module(glc_rel)
+
+
+@pytest.fixture(scope='module')
+def lalr_rel(tmp_path_factory):
+    return glc_rel.construir_lalr_relacional(directorio=str(tmp_path_factory.mktemp('lalr_rel')))
+
+
+class TestGramaticaRelacionalTarea37:
+    """Pruebas formales de la GLC extendida de la Tarea 37 (Integrante 2)."""
+
+    def test_archivo_ebnf_relacional_existe_y_define_7_niveles(self):
+        ruta_ebnf = os.path.join(RAIZ, 'gramatica_relacional.ebnf')
+        assert os.path.isfile(ruta_ebnf)
+        with open(ruta_ebnf, encoding='utf-8') as f:
+            contenido = f.read()
+        for simbolo in ('ExpB', 'TermB', 'FactB', 'ExpRel', 'OpRel', 'ExpA', 'TermA', 'FactA', 'Asignacion'):
+            assert simbolo in contenido
+
+    def test_glc_relacional_bien_formada_productiva_y_alcanzable(self):
+        assert glc_rel.verificar_bien_formada() == []
+        assert set(glc_rel.productivos()[-1]) == set(glc_rel.NO_TERMINALES)
+        assert set(glc_rel.alcanzables()[-1]) == set(glc_rel.NO_TERMINALES) | set(glc_rel.TERMINALES)
+
+    def test_glc_relacional_sin_epsilon_ni_ciclos(self):
+        assert glc_rel.producciones_epsilon() == []
+        assert glc_rel.anulables() == set()
+        assert glc_rel.ciclos() == []
+
+    def test_lalr1_relacional_cero_conflictos(self, lalr_rel):
+        assert lalr_rel['sr'] == 0
+        assert lalr_rel['rr'] == 0
+        assert lalr_rel['estados'] == 48
+
+    def test_ejemplo_enunciado_y_jerarquia_7_niveles(self, lalr_rel):
+        parser = lalr_rel['parser']
+        arbol_ej = glc_rel.analizar_expresion_relacional('(3X+5Y) <= X/(3-Z)', parser)
+        assert arbol_ej == (
+            'rel',
+            '<=',
+            ('+', ('*impl', ('num', 3), ('var', 'X')), ('*impl', ('num', 5), ('var', 'Y'))),
+            ('/', ('var', 'X'), ('-', ('num', 3), ('var', 'Z'))),
+        )
+        arbol_mix = glc_rel.analizar_expresion_relacional(
+            'not ((3X+5Y) <= X/(3-Z)) and (2X + Y == 5) or false', parser
+        )
+        assert arbol_mix[0] == 'or'
+        assert arbol_mix[1][0] == 'and'
+        assert arbol_mix[1][1][0] == 'not'
+

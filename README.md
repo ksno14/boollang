@@ -65,10 +65,12 @@ boollang/
 ├── docs/
 │   ├── numeral1/          # Verificación formal GLC, E-BNF y parser.out (Integrante 2)
 │   └── numeral2/          # Derivaciones, árboles y bloqueo de E3 (Integrante 5)
+├── ejemplos/              # Programas de prueba (.bool) del lenguaje (Integrante 7)
 ├── tests/
 │   ├── __init__.py
 │   ├── test_evaluador.py  # Pruebas del evaluador, CLI y archivo (Integrante 4)
 │   ├── test_gramatica.py  # Pruebas de verificación de la GLC (Integrante 2)
+│   ├── test_integracion.py # Pruebas E2E e integración completa (Integrante 7)
 │   ├── test_lexer.py      # Pruebas unitarias del lexer (Integrante 1)
 │   ├── test_numeral2.py   # Pruebas de derivaciones del Numeral 2 (Integrante 5)
 │   ├── test_parser.py     # Pruebas del parser LALR(1) y la recuperación de errores (Integrante 3)
@@ -95,7 +97,7 @@ pip install -r requirements.txt
 
 ## Ejecución de la Suite Completa de Pruebas
 
-La suite de pruebas contiene **161 pruebas unitarias automatizadas** que cubren el lexer, gramática formal, derivaciones del Numeral 2, parser LALR(1), evaluador, AST, traza y CLI:
+La suite de pruebas contiene **180 pruebas automatizadas** que cubren el lexer, gramática formal, derivaciones del Numeral 2, parser LALR(1), evaluador, AST, traza, CLI e integración de extremo a extremo:
 
 ```bash
 python -m pytest -v

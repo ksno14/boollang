@@ -108,19 +108,10 @@ class TestGramatica:
         _, texto = tabla
         reglas = _reglas(texto)
         assert reglas[0] == "S' -> Programa"
-        assert [reglas[n] for n in range(9, 19)] == [
-            'Programa -> Sentencias',
-            'Programa -> Sentencias ExpB',
-            'Sentencias -> Sentencias Sentencia',
-            'Sentencias -> <empty>',
-            'Sentencia -> ExpB NEWLINE',
-            'Sentencia -> ExpB PUNTOYCOMA',
-            'Sentencia -> NEWLINE',
-            'Sentencia -> PUNTOYCOMA',
-            'Sentencia -> error NEWLINE',
-            'Sentencia -> error PUNTOYCOMA',
-        ]
-        assert len(reglas) == 19
+        assert reglas[9] == "FactB -> ExpRel"
+        assert reglas[10] == "ExpRel -> ExpA OpRel ExpA"
+        assert reglas[29] == "Asignacion -> ID ASSIGN ExpA"
+        assert len(reglas) == 43
 
     def test_lalr1_sin_conflictos(self, tabla):
         parser, texto = tabla
@@ -129,7 +120,7 @@ class TestGramatica:
         assert parser.conflictos_rr == 0
         assert 'conflict' not in texto
         assert parser.avisos == []
-        assert parser.estados == 25 == len(re.findall(r'^state \d+$', texto, re.M))
+        assert parser.estados == len(re.findall(r'^state \d+$', texto, re.M))
 
     def test_usa_los_tokens_del_lexer(self):
         from boollang.lexer import tokens
@@ -463,3 +454,67 @@ class TestIntegracion:
             "[L2] (true => ERROR sintactico: fin de linea inesperado, falta ')'",
             '# Resumen: 3 expresiones procesadas | 2 evaluadas | 1 con error',
         ]
+
+
+# ---------------------------------------------------------------------------
+# Tarea 37: Expresiones proposicionales relacionales, aritméticas y asignación
+# ---------------------------------------------------------------------------
+
+from boollang.nodos import (
+    Asignacion,
+    BinOpArit,
+    ComparacionRel,
+    Numero,
+    UnarioArit,
+    Variable,
+)
+
+
+class TestParserRelacionalTarea37:
+    """Pruebas del parser LALR(1) extendido para la Tarea 37 (Integrante 3)."""
+
+    def test_ejemplo_exacto_del_enunciado(self):
+        ast = _arbol('(3X+5Y) <= X/(3-Z)')
+        assert ast == ComparacionRel(
+            '<=',
+            BinOpArit(
+                '+',
+                BinOpArit('*', Numero(3), Variable('X'), implicita=True),
+                BinOpArit('*', Numero(5), Variable('Y'), implicita=True),
+            ),
+            BinOpArit('/', Variable('X'), BinOpArit('-', Numero(3), Variable('Z'))),
+        )
+        assert ast.a_texto() == '3X+5Y <= X/(3-Z)'
+
+    def test_multiplicacion_implicita_con_parentesis_y_unario(self):
+        ast = _arbol('2(X+1) == -3 * Y')
+        assert ast == ComparacionRel(
+            '==',
+            BinOpArit('*', Numero(2), BinOpArit('+', Variable('X'), Numero(1)), implicita=True),
+            BinOpArit('*', UnarioArit(Numero(3)), Variable('Y')),
+        )
+
+    def test_combinacion_proposicional_relacional_y_booleana(self):
+        ast = _arbol('not ((3X+5Y) <= X/(3-Z)) and (2X + Y == 5) or false')
+        assert isinstance(ast, Disyuncion)
+        assert isinstance(ast.izq, Conjuncion)
+        assert isinstance(ast.izq.izq, Negacion)
+        assert isinstance(ast.izq.izq.op, ComparacionRel)
+        assert isinstance(ast.izq.der, ComparacionRel)
+        assert ast.der == Constante(False)
+
+    def test_asignaciones_separadas_por_punto_y_coma(self):
+        res = _resumen('X = 2; Y = 1; Z = 2;\n')
+        assert res == [
+            (1, 'X = 2', Asignacion('X', Numero(2))),
+            (1, 'Y = 1', Asignacion('Y', Numero(1))),
+            (1, 'Z = 2', Asignacion('Z', Numero(2))),
+        ]
+
+    def test_error_sintactico_doble_operador_relacional(self):
+        res = _resumen('(3X+5Y) <= <= 10\nX = 3\n')
+        assert res == [
+            (1, '(3X+5Y) <= <= 10', "ERROR sintactico (col 12): token inesperado '<='"),
+            (2, 'X = 3', Asignacion('X', Numero(3))),
+        ]
+

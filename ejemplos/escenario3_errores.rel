@@ -1,0 +1,23 @@
+// Escenario 3: Pruebas de errores lexicos, sintacticos y semanticos con recuperacion
+X = 10; Y = 4; Z = 3;
+
+// 1. Evaluacion valida inicial
+2X - Y == 16
+
+// 2. Error semantico: variable no definida
+W + 1 <= 20
+
+// 3. Error semantico: division por cero con divisor compuesto
+(3X + 5Y) <= X / (3 - Z)
+
+// 4. Error sintactico: operadores relacionales encadenados sin parentesis / doble operador
+X < Y < Z
+(X + 2Y) <= <= 5
+
+// 5. Error lexico: caracteres ilegales '@' y '$'
+X + 1 @ 2
+X $ 5 == 10
+
+// 6. Recuperacion exitosa en las lineas finales
+Z = 1;
+(X + Y) / (3 - Z) == 7 and not false

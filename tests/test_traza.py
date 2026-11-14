@@ -355,3 +355,43 @@ class TestCLIIntegrante6:
         assert "|--" in salida
         assert "├" not in salida
         assert "└" not in salida
+
+
+from boollang import BinOpArit, ComparacionRel, Numero, Variable
+
+
+class TestTrazaRelacionalTarea37:
+    """Pruebas de nodos AST extendidos y traza paso a paso para la Tarea 37 (Integrante 6)."""
+
+    def test_nodos_relacionales_y_aritmeticos_a_texto(self):
+        nodo = ComparacionRel(
+            "<=",
+            BinOpArit(
+                "+",
+                BinOpArit("*", Numero(3), Variable("X"), implicita=True),
+                BinOpArit("*", Numero(5), Variable("Y"), implicita=True),
+            ),
+            BinOpArit("/", Variable("X"), BinOpArit("-", Numero(3), Variable("Z"))),
+        )
+        assert nodo.a_texto() == "3X+5Y <= X/(3-Z)"
+        assert Negacion(nodo).a_texto() == "not (3X+5Y <= X/(3-Z))"
+
+    def test_traza_relacional_muestra_valores_numericos_intermedios_y_booleano_final(self):
+        env = {"X": 2, "Y": 1, "Z": 2}
+        traza = trazar_evaluacion("(3X+5Y) <= X/(3-Z)", entorno=env)
+        assert traza.resultado_final is False
+        # Verifica que se hayan reducido 3X -> 6, 5Y -> 5, 6+5 -> 11, 3-2 -> 1, 2/1 -> 2.0 y 11 <= 2.0 -> false
+        subexpresiones = [p.subexpresion for p in traza.pasos]
+        resultados = [p.resultado for p in traza.pasos]
+        assert "3X" in subexpresiones
+        assert 6 in resultados
+        assert 11 in resultados
+        assert 2.0 in resultados
+        assert traza.pasos[-1].operador == "<="
+        assert traza.pasos[-1].resultado is False
+
+        texto_arbol = formatear_arbol(parsear_expresion("(3X+5Y) <= X/(3-Z)"), con_valores=True, entorno=env)
+        assert "<=   [false]" in texto_arbol
+        assert "+   [11]" in texto_arbol
+        assert "/   [2.0]" in texto_arbol
+

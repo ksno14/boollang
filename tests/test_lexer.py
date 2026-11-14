@@ -212,3 +212,54 @@ class TestEscenarioOficialEnunciado:
         toks_linea_7 = [t for t in toks if t.lineno == 7]
         tipos_l7 = [t.type for t in toks_linea_7]
         assert tipos_l7 == ['NOT', 'FALSE', 'AND', 'TRUE', 'NEWLINE']
+
+
+class TestTokensRelacionalesYAritmeticosTarea37:
+    """Pruebas del analizador léxico extendido para la Tarea 37 (Integrante 1)."""
+
+    def test_operadores_relacionales(self):
+        entrada = "<= >= == != < >"
+        toks, errs = tokenize(entrada)
+        assert len(errs) == 0
+        assert [t.type for t in toks] == ['LE', 'GE', 'EQ', 'NE', 'LT', 'GT']
+        assert [t.value for t in toks] == ['<=', '>=', '==', '!=', '<', '>']
+
+    def test_operadores_aritmeticos_y_asignacion(self):
+        entrada = "+ - * / ="
+        toks, errs = tokenize(entrada)
+        assert len(errs) == 0
+        assert [t.type for t in toks] == ['PLUS', 'MINUS', 'TIMES', 'DIVIDE', 'ASSIGN']
+        assert [t.value for t in toks] == ['+', '-', '*', '/', '=']
+
+    def test_numeros_enteros_y_flotantes(self):
+        entrada = "0 3 5 42 3.14 2.0 0.5"
+        toks, errs = tokenize(entrada)
+        assert len(errs) == 0
+        assert [t.type for t in toks] == ['NUMBER'] * 7
+        assert [t.value for t in toks] == [0, 3, 5, 42, 3.14, 2.0, 0.5]
+        assert all(isinstance(t.value, int) for t in toks[:4])
+        assert all(isinstance(t.value, float) for t in toks[4:])
+
+    def test_identificadores_y_multiplicacion_implicita(self):
+        entrada = "(3X+5Y) <= X/(3-Z)"
+        toks, errs = tokenize(entrada)
+        assert len(errs) == 0
+        assert [t.type for t in toks] == [
+            'LPAREN', 'NUMBER', 'ID', 'PLUS', 'NUMBER', 'ID', 'RPAREN',
+            'LE', 'ID', 'DIVIDE', 'LPAREN', 'NUMBER', 'MINUS', 'ID', 'RPAREN',
+        ]
+        assert [t.value for t in toks] == [
+            '(', 3, 'X', '+', 5, 'Y', ')', '<=', 'X', '/', '(', 3, '-', 'Z', ')',
+        ]
+
+    def test_sentencias_de_asignacion(self):
+        entrada = "X = 2; Y = 1; Z = 2;\n"
+        toks, errs = tokenize(entrada)
+        assert len(errs) == 0
+        assert [t.type for t in toks] == [
+            'ID', 'ASSIGN', 'NUMBER', 'PUNTOYCOMA',
+            'ID', 'ASSIGN', 'NUMBER', 'PUNTOYCOMA',
+            'ID', 'ASSIGN', 'NUMBER', 'PUNTOYCOMA',
+            'NEWLINE',
+        ]
+

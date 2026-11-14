@@ -1,0 +1,13 @@
+// Definicion de variables
+X = 2; Y = 1; Z = 2;
+
+// 1. Ejemplo exacto del enunciado
+(3X+5Y) <= X/(3-Z)
+
+// 2. Combinacion proposicional relacional + booleana
+not ((3X+5Y) <= X/(3-Z)) and (2X + Y == 5) or false
+
+// 3. Errores controlados
+Z = 3;
+(3X+5Y) <= X/(3-Z)
+(3X+5Y) <= <= 10

@@ -1,0 +1,950 @@
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
+
+Grammar
+
+Rule 0     S' -> ExpB
+Rule 1     ExpB -> ExpB OR TermB
+Rule 2     ExpB -> TermB
+Rule 3     TermB -> TermB AND FactB
+Rule 4     TermB -> FactB
+Rule 5     FactB -> NOT FactB
+Rule 6     FactB -> LPAREN ExpB RPAREN
+Rule 7     FactB -> TRUE
+Rule 8     FactB -> FALSE
+Rule 9     FactB -> ExpRel
+Rule 10    ExpRel -> ExpA OpRel ExpA
+Rule 11    OpRel -> LE
+Rule 12    OpRel -> GE
+Rule 13    OpRel -> EQ
+Rule 14    OpRel -> NE
+Rule 15    OpRel -> LT
+Rule 16    OpRel -> GT
+Rule 17    ExpA -> ExpA PLUS TermA
+Rule 18    ExpA -> ExpA MINUS TermA
+Rule 19    ExpA -> TermA
+Rule 20    TermA -> TermA TIMES FactA
+Rule 21    TermA -> TermA DIVIDE FactA
+Rule 22    TermA -> NUMBER ID
+Rule 23    TermA -> NUMBER LPAREN ExpA RPAREN
+Rule 24    TermA -> FactA
+Rule 25    FactA -> MINUS FactA
+Rule 26    FactA -> LPAREN ExpA RPAREN
+Rule 27    FactA -> NUMBER
+Rule 28    FactA -> ID
+
+Terminals, with rules where they appear
+
+AND                  : 3
+DIVIDE               : 21
+EQ                   : 13
+FALSE                : 8
+GE                   : 12
+GT                   : 16
+ID                   : 22 28
+LE                   : 11
+LPAREN               : 6 23 26
+LT                   : 15
+MINUS                : 18 25
+NE                   : 14
+NOT                  : 5
+NUMBER               : 22 23 27
+OR                   : 1
+PLUS                 : 17
+RPAREN               : 6 23 26
+TIMES                : 20
+TRUE                 : 7
+error                : 
+
+Nonterminals, with rules where they appear
+
+ExpA                 : 10 10 17 18 23 26
+ExpB                 : 1 6 0
+ExpRel               : 9
+FactA                : 20 21 24 25
+FactB                : 3 4 5
+OpRel                : 10
+TermA                : 17 18 19 20 21
+TermB                : 1 2 3
+
+Parsing method: LALR
+
+state 0
+
+    (0) S' -> . ExpB
+    (1) ExpB -> . ExpB OR TermB
+    (2) ExpB -> . TermB
+    (3) TermB -> . TermB AND FactB
+    (4) TermB -> . FactB
+    (5) FactB -> . NOT FactB
+    (6) FactB -> . LPAREN ExpB RPAREN
+    (7) FactB -> . TRUE
+    (8) FactB -> . FALSE
+    (9) FactB -> . ExpRel
+    (10) ExpRel -> . ExpA OpRel ExpA
+    (17) ExpA -> . ExpA PLUS TermA
+    (18) ExpA -> . ExpA MINUS TermA
+    (19) ExpA -> . TermA
+    (20) TermA -> . TermA TIMES FactA
+    (21) TermA -> . TermA DIVIDE FactA
+    (22) TermA -> . NUMBER ID
+    (23) TermA -> . NUMBER LPAREN ExpA RPAREN
+    (24) TermA -> . FactA
+    (25) FactA -> . MINUS FactA
+    (26) FactA -> . LPAREN ExpA RPAREN
+    (27) FactA -> . NUMBER
+    (28) FactA -> . ID
+
+    NOT             shift and go to state 4
+    LPAREN          shift and go to state 5
+    TRUE            shift and go to state 6
+    FALSE           shift and go to state 7
+    NUMBER          shift and go to state 13
+    MINUS           shift and go to state 11
+    ID              shift and go to state 14
+
+    ExpB                           shift and go to state 1
+    TermB                          shift and go to state 2
+    FactB                          shift and go to state 3
+    ExpRel                         shift and go to state 8
+    ExpA                           shift and go to state 9
+    TermA                          shift and go to state 10
+    FactA                          shift and go to state 12
+
+state 1
+
+    (0) S' -> ExpB .
+    (1) ExpB -> ExpB . OR TermB
+
+    OR              shift and go to state 15
+
+
+state 2
+
+    (2) ExpB -> TermB .
+    (3) TermB -> TermB . AND FactB
+
+    OR              reduce using rule 2 (ExpB -> TermB .)
+    $end            reduce using rule 2 (ExpB -> TermB .)
+    RPAREN          reduce using rule 2 (ExpB -> TermB .)
+    AND             shift and go to state 16
+
+
+state 3
+
+    (4) TermB -> FactB .
+
+    AND             reduce using rule 4 (TermB -> FactB .)
+    OR              reduce using rule 4 (TermB -> FactB .)
+    $end            reduce using rule 4 (TermB -> FactB .)
+    RPAREN          reduce using rule 4 (TermB -> FactB .)
+
+
+state 4
+
+    (5) FactB -> NOT . FactB
+    (5) FactB -> . NOT FactB
+    (6) FactB -> . LPAREN ExpB RPAREN
+    (7) FactB -> . TRUE
+    (8) FactB -> . FALSE
+    (9) FactB -> . ExpRel
+    (10) ExpRel -> . ExpA OpRel ExpA
+    (17) ExpA -> . ExpA PLUS TermA
+    (18) ExpA -> . ExpA MINUS TermA
+    (19) ExpA -> . TermA
+    (20) TermA -> . TermA TIMES FactA
+    (21) TermA -> . TermA DIVIDE FactA
+    (22) TermA -> . NUMBER ID
+    (23) TermA -> . NUMBER LPAREN ExpA RPAREN
+    (24) TermA -> . FactA
+    (25) FactA -> . MINUS FactA
+    (26) FactA -> . LPAREN ExpA RPAREN
+    (27) FactA -> . NUMBER
+    (28) FactA -> . ID
+
+    NOT             shift and go to state 4
+    LPAREN          shift and go to state 5
+    TRUE            shift and go to state 6
+    FALSE           shift and go to state 7
+    NUMBER          shift and go to state 13
+    MINUS           shift and go to state 11
+    ID              shift and go to state 14
+
+    FactB                          shift and go to state 17
+    ExpRel                         shift and go to state 8
+    ExpA                           shift and go to state 9
+    TermA                          shift and go to state 10
+    FactA                          shift and go to state 12
+
+state 5
+
+    (6) FactB -> LPAREN . ExpB RPAREN
+    (26) FactA -> LPAREN . ExpA RPAREN
+    (1) ExpB -> . ExpB OR TermB
+    (2) ExpB -> . TermB
+    (17) ExpA -> . ExpA PLUS TermA
+    (18) ExpA -> . ExpA MINUS TermA
+    (19) ExpA -> . TermA
+    (3) TermB -> . TermB AND FactB
+    (4) TermB -> . FactB
+    (20) TermA -> . TermA TIMES FactA
+    (21) TermA -> . TermA DIVIDE FactA
+    (22) TermA -> . NUMBER ID
+    (23) TermA -> . NUMBER LPAREN ExpA RPAREN
+    (24) TermA -> . FactA
+    (5) FactB -> . NOT FactB
+    (6) FactB -> . LPAREN ExpB RPAREN
+    (7) FactB -> . TRUE
+    (8) FactB -> . FALSE
+    (9) FactB -> . ExpRel
+    (25) FactA -> . MINUS FactA
+    (26) FactA -> . LPAREN ExpA RPAREN
+    (27) FactA -> . NUMBER
+    (28) FactA -> . ID
+    (10) ExpRel -> . ExpA OpRel ExpA
+
+    NUMBER          shift and go to state 13
+    NOT             shift and go to state 4
+    LPAREN          shift and go to state 5
+    TRUE            shift and go to state 6
+    FALSE           shift and go to state 7
+    MINUS           shift and go to state 11
+    ID              shift and go to state 14
+
+    ExpB                           shift and go to state 18
+    ExpA                           shift and go to state 19
+    TermB                          shift and go to state 2
+    TermA                          shift and go to state 10
+    FactB                          shift and go to state 3
+    FactA                          shift and go to state 12
+    ExpRel                         shift and go to state 8
+
+state 6
+
+    (7) FactB -> TRUE .
+
+    AND             reduce using rule 7 (FactB -> TRUE .)
+    OR              reduce using rule 7 (FactB -> TRUE .)
+    $end            reduce using rule 7 (FactB -> TRUE .)
+    RPAREN          reduce using rule 7 (FactB -> TRUE .)
+
+
+state 7
+
+    (8) FactB -> FALSE .
+
+    AND             reduce using rule 8 (FactB -> FALSE .)
+    OR              reduce using rule 8 (FactB -> FALSE .)
+    $end            reduce using rule 8 (FactB -> FALSE .)
+    RPAREN          reduce using rule 8 (FactB -> FALSE .)
+
+
+state 8
+
+    (9) FactB -> ExpRel .
+
+    AND             reduce using rule 9 (FactB -> ExpRel .)
+    OR              reduce using rule 9 (FactB -> ExpRel .)
+    $end            reduce using rule 9 (FactB -> ExpRel .)
+    RPAREN          reduce using rule 9 (FactB -> ExpRel .)
+
+
+state 9
+
+    (10) ExpRel -> ExpA . OpRel ExpA
+    (17) ExpA -> ExpA . PLUS TermA
+    (18) ExpA -> ExpA . MINUS TermA
+    (11) OpRel -> . LE
+    (12) OpRel -> . GE
+    (13) OpRel -> . EQ
+    (14) OpRel -> . NE
+    (15) OpRel -> . LT
+    (16) OpRel -> . GT
+
+    PLUS            shift and go to state 21
+    MINUS           shift and go to state 22
+    LE              shift and go to state 23
+    GE              shift and go to state 24
+    EQ              shift and go to state 25
+    NE              shift and go to state 26
+    LT              shift and go to state 27
+    GT              shift and go to state 28
+
+    OpRel                          shift and go to state 20
+
+state 10
+
+    (19) ExpA -> TermA .
+    (20) TermA -> TermA . TIMES FactA
+    (21) TermA -> TermA . DIVIDE FactA
+
+    PLUS            reduce using rule 19 (ExpA -> TermA .)
+    MINUS           reduce using rule 19 (ExpA -> TermA .)
+    LE              reduce using rule 19 (ExpA -> TermA .)
+    GE              reduce using rule 19 (ExpA -> TermA .)
+    EQ              reduce using rule 19 (ExpA -> TermA .)
+    NE              reduce using rule 19 (ExpA -> TermA .)
+    LT              reduce using rule 19 (ExpA -> TermA .)
+    GT              reduce using rule 19 (ExpA -> TermA .)
+    RPAREN          reduce using rule 19 (ExpA -> TermA .)
+    AND             reduce using rule 19 (ExpA -> TermA .)
+    OR              reduce using rule 19 (ExpA -> TermA .)
+    $end            reduce using rule 19 (ExpA -> TermA .)
+    TIMES           shift and go to state 29
+    DIVIDE          shift and go to state 30
+
+
+state 11
+
+    (25) FactA -> MINUS . FactA
+    (25) FactA -> . MINUS FactA
+    (26) FactA -> . LPAREN ExpA RPAREN
+    (27) FactA -> . NUMBER
+    (28) FactA -> . ID
+
+    MINUS           shift and go to state 11
+    LPAREN          shift and go to state 32
+    NUMBER          shift and go to state 33
+    ID              shift and go to state 14
+
+    FactA                          shift and go to state 31
+
+state 12
+
+    (24) TermA -> FactA .
+
+    TIMES           reduce using rule 24 (TermA -> FactA .)
+    DIVIDE          reduce using rule 24 (TermA -> FactA .)
+    PLUS            reduce using rule 24 (TermA -> FactA .)
+    MINUS           reduce using rule 24 (TermA -> FactA .)
+    LE              reduce using rule 24 (TermA -> FactA .)
+    GE              reduce using rule 24 (TermA -> FactA .)
+    EQ              reduce using rule 24 (TermA -> FactA .)
+    NE              reduce using rule 24 (TermA -> FactA .)
+    LT              reduce using rule 24 (TermA -> FactA .)
+    GT              reduce using rule 24 (TermA -> FactA .)
+    RPAREN          reduce using rule 24 (TermA -> FactA .)
+    AND             reduce using rule 24 (TermA -> FactA .)
+    OR              reduce using rule 24 (TermA -> FactA .)
+    $end            reduce using rule 24 (TermA -> FactA .)
+
+
+state 13
+
+    (22) TermA -> NUMBER . ID
+    (23) TermA -> NUMBER . LPAREN ExpA RPAREN
+    (27) FactA -> NUMBER .
+
+    ID              shift and go to state 34
+    LPAREN          shift and go to state 35
+    TIMES           reduce using rule 27 (FactA -> NUMBER .)
+    DIVIDE          reduce using rule 27 (FactA -> NUMBER .)
+    PLUS            reduce using rule 27 (FactA -> NUMBER .)
+    MINUS           reduce using rule 27 (FactA -> NUMBER .)
+    LE              reduce using rule 27 (FactA -> NUMBER .)
+    GE              reduce using rule 27 (FactA -> NUMBER .)
+    EQ              reduce using rule 27 (FactA -> NUMBER .)
+    NE              reduce using rule 27 (FactA -> NUMBER .)
+    LT              reduce using rule 27 (FactA -> NUMBER .)
+    GT              reduce using rule 27 (FactA -> NUMBER .)
+    RPAREN          reduce using rule 27 (FactA -> NUMBER .)
+    AND             reduce using rule 27 (FactA -> NUMBER .)
+    OR              reduce using rule 27 (FactA -> NUMBER .)
+    $end            reduce using rule 27 (FactA -> NUMBER .)
+
+
+state 14
+
+    (28) FactA -> ID .
+
+    TIMES           reduce using rule 28 (FactA -> ID .)
+    DIVIDE          reduce using rule 28 (FactA -> ID .)
+    PLUS            reduce using rule 28 (FactA -> ID .)
+    MINUS           reduce using rule 28 (FactA -> ID .)
+    LE              reduce using rule 28 (FactA -> ID .)
+    GE              reduce using rule 28 (FactA -> ID .)
+    EQ              reduce using rule 28 (FactA -> ID .)
+    NE              reduce using rule 28 (FactA -> ID .)
+    LT              reduce using rule 28 (FactA -> ID .)
+    GT              reduce using rule 28 (FactA -> ID .)
+    RPAREN          reduce using rule 28 (FactA -> ID .)
+    AND             reduce using rule 28 (FactA -> ID .)
+    OR              reduce using rule 28 (FactA -> ID .)
+    $end            reduce using rule 28 (FactA -> ID .)
+
+
+state 15
+
+    (1) ExpB -> ExpB OR . TermB
+    (3) TermB -> . TermB AND FactB
+    (4) TermB -> . FactB
+    (5) FactB -> . NOT FactB
+    (6) FactB -> . LPAREN ExpB RPAREN
+    (7) FactB -> . TRUE
+    (8) FactB -> . FALSE
+    (9) FactB -> . ExpRel
+    (10) ExpRel -> . ExpA OpRel ExpA
+    (17) ExpA -> . ExpA PLUS TermA
+    (18) ExpA -> . ExpA MINUS TermA
+    (19) ExpA -> . TermA
+    (20) TermA -> . TermA TIMES FactA
+    (21) TermA -> . TermA DIVIDE FactA
+    (22) TermA -> . NUMBER ID
+    (23) TermA -> . NUMBER LPAREN ExpA RPAREN
+    (24) TermA -> . FactA
+    (25) FactA -> . MINUS FactA
+    (26) FactA -> . LPAREN ExpA RPAREN
+    (27) FactA -> . NUMBER
+    (28) FactA -> . ID
+
+    NOT             shift and go to state 4
+    LPAREN          shift and go to state 5
+    TRUE            shift and go to state 6
+    FALSE           shift and go to state 7
+    NUMBER          shift and go to state 13
+    MINUS           shift and go to state 11
+    ID              shift and go to state 14
+
+    TermB                          shift and go to state 36
+    FactB                          shift and go to state 3
+    ExpRel                         shift and go to state 8
+    ExpA                           shift and go to state 9
+    TermA                          shift and go to state 10
+    FactA                          shift and go to state 12
+
+state 16
+
+    (3) TermB -> TermB AND . FactB
+    (5) FactB -> . NOT FactB
+    (6) FactB -> . LPAREN ExpB RPAREN
+    (7) FactB -> . TRUE
+    (8) FactB -> . FALSE
+    (9) FactB -> . ExpRel
+    (10) ExpRel -> . ExpA OpRel ExpA
+    (17) ExpA -> . ExpA PLUS TermA
+    (18) ExpA -> . ExpA MINUS TermA
+    (19) ExpA -> . TermA
+    (20) TermA -> . TermA TIMES FactA
+    (21) TermA -> . TermA DIVIDE FactA
+    (22) TermA -> . NUMBER ID
+    (23) TermA -> . NUMBER LPAREN ExpA RPAREN
+    (24) TermA -> . FactA
+    (25) FactA -> . MINUS FactA
+    (26) FactA -> . LPAREN ExpA RPAREN
+    (27) FactA -> . NUMBER
+    (28) FactA -> . ID
+
+    NOT             shift and go to state 4
+    LPAREN          shift and go to state 5
+    TRUE            shift and go to state 6
+    FALSE           shift and go to state 7
+    NUMBER          shift and go to state 13
+    MINUS           shift and go to state 11
+    ID              shift and go to state 14
+
+    FactB                          shift and go to state 37
+    ExpRel                         shift and go to state 8
+    ExpA                           shift and go to state 9
+    TermA                          shift and go to state 10
+    FactA                          shift and go to state 12
+
+state 17
+
+    (5) FactB -> NOT FactB .
+
+    AND             reduce using rule 5 (FactB -> NOT FactB .)
+    OR              reduce using rule 5 (FactB -> NOT FactB .)
+    $end            reduce using rule 5 (FactB -> NOT FactB .)
+    RPAREN          reduce using rule 5 (FactB -> NOT FactB .)
+
+
+state 18
+
+    (6) FactB -> LPAREN ExpB . RPAREN
+    (1) ExpB -> ExpB . OR TermB
+
+    RPAREN          shift and go to state 38
+    OR              shift and go to state 15
+
+
+state 19
+
+    (26) FactA -> LPAREN ExpA . RPAREN
+    (17) ExpA -> ExpA . PLUS TermA
+    (18) ExpA -> ExpA . MINUS TermA
+    (10) ExpRel -> ExpA . OpRel ExpA
+    (11) OpRel -> . LE
+    (12) OpRel -> . GE
+    (13) OpRel -> . EQ
+    (14) OpRel -> . NE
+    (15) OpRel -> . LT
+    (16) OpRel -> . GT
+
+    RPAREN          shift and go to state 39
+    PLUS            shift and go to state 21
+    MINUS           shift and go to state 22
+    LE              shift and go to state 23
+    GE              shift and go to state 24
+    EQ              shift and go to state 25
+    NE              shift and go to state 26
+    LT              shift and go to state 27
+    GT              shift and go to state 28
+
+    OpRel                          shift and go to state 20
+
+state 20
+
+    (10) ExpRel -> ExpA OpRel . ExpA
+    (17) ExpA -> . ExpA PLUS TermA
+    (18) ExpA -> . ExpA MINUS TermA
+    (19) ExpA -> . TermA
+    (20) TermA -> . TermA TIMES FactA
+    (21) TermA -> . TermA DIVIDE FactA
+    (22) TermA -> . NUMBER ID
+    (23) TermA -> . NUMBER LPAREN ExpA RPAREN
+    (24) TermA -> . FactA
+    (25) FactA -> . MINUS FactA
+    (26) FactA -> . LPAREN ExpA RPAREN
+    (27) FactA -> . NUMBER
+    (28) FactA -> . ID
+
+    NUMBER          shift and go to state 13
+    MINUS           shift and go to state 11
+    LPAREN          shift and go to state 32
+    ID              shift and go to state 14
+
+    ExpA                           shift and go to state 40
+    TermA                          shift and go to state 10
+    FactA                          shift and go to state 12
+
+state 21
+
+    (17) ExpA -> ExpA PLUS . TermA
+    (20) TermA -> . TermA TIMES FactA
+    (21) TermA -> . TermA DIVIDE FactA
+    (22) TermA -> . NUMBER ID
+    (23) TermA -> . NUMBER LPAREN ExpA RPAREN
+    (24) TermA -> . FactA
+    (25) FactA -> . MINUS FactA
+    (26) FactA -> . LPAREN ExpA RPAREN
+    (27) FactA -> . NUMBER
+    (28) FactA -> . ID
+
+    NUMBER          shift and go to state 13
+    MINUS           shift and go to state 11
+    LPAREN          shift and go to state 32
+    ID              shift and go to state 14
+
+    TermA                          shift and go to state 41
+    FactA                          shift and go to state 12
+
+state 22
+
+    (18) ExpA -> ExpA MINUS . TermA
+    (20) TermA -> . TermA TIMES FactA
+    (21) TermA -> . TermA DIVIDE FactA
+    (22) TermA -> . NUMBER ID
+    (23) TermA -> . NUMBER LPAREN ExpA RPAREN
+    (24) TermA -> . FactA
+    (25) FactA -> . MINUS FactA
+    (26) FactA -> . LPAREN ExpA RPAREN
+    (27) FactA -> . NUMBER
+    (28) FactA -> . ID
+
+    NUMBER          shift and go to state 13
+    MINUS           shift and go to state 11
+    LPAREN          shift and go to state 32
+    ID              shift and go to state 14
+
+    TermA                          shift and go to state 42
+    FactA                          shift and go to state 12
+
+state 23
+
+    (11) OpRel -> LE .
+
+    NUMBER          reduce using rule 11 (OpRel -> LE .)
+    MINUS           reduce using rule 11 (OpRel -> LE .)
+    LPAREN          reduce using rule 11 (OpRel -> LE .)
+    ID              reduce using rule 11 (OpRel -> LE .)
+
+
+state 24
+
+    (12) OpRel -> GE .
+
+    NUMBER          reduce using rule 12 (OpRel -> GE .)
+    MINUS           reduce using rule 12 (OpRel -> GE .)
+    LPAREN          reduce using rule 12 (OpRel -> GE .)
+    ID              reduce using rule 12 (OpRel -> GE .)
+
+
+state 25
+
+    (13) OpRel -> EQ .
+
+    NUMBER          reduce using rule 13 (OpRel -> EQ .)
+    MINUS           reduce using rule 13 (OpRel -> EQ .)
+    LPAREN          reduce using rule 13 (OpRel -> EQ .)
+    ID              reduce using rule 13 (OpRel -> EQ .)
+
+
+state 26
+
+    (14) OpRel -> NE .
+
+    NUMBER          reduce using rule 14 (OpRel -> NE .)
+    MINUS           reduce using rule 14 (OpRel -> NE .)
+    LPAREN          reduce using rule 14 (OpRel -> NE .)
+    ID              reduce using rule 14 (OpRel -> NE .)
+
+
+state 27
+
+    (15) OpRel -> LT .
+
+    NUMBER          reduce using rule 15 (OpRel -> LT .)
+    MINUS           reduce using rule 15 (OpRel -> LT .)
+    LPAREN          reduce using rule 15 (OpRel -> LT .)
+    ID              reduce using rule 15 (OpRel -> LT .)
+
+
+state 28
+
+    (16) OpRel -> GT .
+
+    NUMBER          reduce using rule 16 (OpRel -> GT .)
+    MINUS           reduce using rule 16 (OpRel -> GT .)
+    LPAREN          reduce using rule 16 (OpRel -> GT .)
+    ID              reduce using rule 16 (OpRel -> GT .)
+
+
+state 29
+
+    (20) TermA -> TermA TIMES . FactA
+    (25) FactA -> . MINUS FactA
+    (26) FactA -> . LPAREN ExpA RPAREN
+    (27) FactA -> . NUMBER
+    (28) FactA -> . ID
+
+    MINUS           shift and go to state 11
+    LPAREN          shift and go to state 32
+    NUMBER          shift and go to state 33
+    ID              shift and go to state 14
+
+    FactA                          shift and go to state 43
+
+state 30
+
+    (21) TermA -> TermA DIVIDE . FactA
+    (25) FactA -> . MINUS FactA
+    (26) FactA -> . LPAREN ExpA RPAREN
+    (27) FactA -> . NUMBER
+    (28) FactA -> . ID
+
+    MINUS           shift and go to state 11
+    LPAREN          shift and go to state 32
+    NUMBER          shift and go to state 33
+    ID              shift and go to state 14
+
+    FactA                          shift and go to state 44
+
+state 31
+
+    (25) FactA -> MINUS FactA .
+
+    TIMES           reduce using rule 25 (FactA -> MINUS FactA .)
+    DIVIDE          reduce using rule 25 (FactA -> MINUS FactA .)
+    PLUS            reduce using rule 25 (FactA -> MINUS FactA .)
+    MINUS           reduce using rule 25 (FactA -> MINUS FactA .)
+    LE              reduce using rule 25 (FactA -> MINUS FactA .)
+    GE              reduce using rule 25 (FactA -> MINUS FactA .)
+    EQ              reduce using rule 25 (FactA -> MINUS FactA .)
+    NE              reduce using rule 25 (FactA -> MINUS FactA .)
+    LT              reduce using rule 25 (FactA -> MINUS FactA .)
+    GT              reduce using rule 25 (FactA -> MINUS FactA .)
+    RPAREN          reduce using rule 25 (FactA -> MINUS FactA .)
+    AND             reduce using rule 25 (FactA -> MINUS FactA .)
+    OR              reduce using rule 25 (FactA -> MINUS FactA .)
+    $end            reduce using rule 25 (FactA -> MINUS FactA .)
+
+
+state 32
+
+    (26) FactA -> LPAREN . ExpA RPAREN
+    (17) ExpA -> . ExpA PLUS TermA
+    (18) ExpA -> . ExpA MINUS TermA
+    (19) ExpA -> . TermA
+    (20) TermA -> . TermA TIMES FactA
+    (21) TermA -> . TermA DIVIDE FactA
+    (22) TermA -> . NUMBER ID
+    (23) TermA -> . NUMBER LPAREN ExpA RPAREN
+    (24) TermA -> . FactA
+    (25) FactA -> . MINUS FactA
+    (26) FactA -> . LPAREN ExpA RPAREN
+    (27) FactA -> . NUMBER
+    (28) FactA -> . ID
+
+    NUMBER          shift and go to state 13
+    MINUS           shift and go to state 11
+    LPAREN          shift and go to state 32
+    ID              shift and go to state 14
+
+    ExpA                           shift and go to state 45
+    TermA                          shift and go to state 10
+    FactA                          shift and go to state 12
+
+state 33
+
+    (27) FactA -> NUMBER .
+
+    TIMES           reduce using rule 27 (FactA -> NUMBER .)
+    DIVIDE          reduce using rule 27 (FactA -> NUMBER .)
+    PLUS            reduce using rule 27 (FactA -> NUMBER .)
+    MINUS           reduce using rule 27 (FactA -> NUMBER .)
+    LE              reduce using rule 27 (FactA -> NUMBER .)
+    GE              reduce using rule 27 (FactA -> NUMBER .)
+    EQ              reduce using rule 27 (FactA -> NUMBER .)
+    NE              reduce using rule 27 (FactA -> NUMBER .)
+    LT              reduce using rule 27 (FactA -> NUMBER .)
+    GT              reduce using rule 27 (FactA -> NUMBER .)
+    RPAREN          reduce using rule 27 (FactA -> NUMBER .)
+    AND             reduce using rule 27 (FactA -> NUMBER .)
+    OR              reduce using rule 27 (FactA -> NUMBER .)
+    $end            reduce using rule 27 (FactA -> NUMBER .)
+
+
+state 34
+
+    (22) TermA -> NUMBER ID .
+
+    TIMES           reduce using rule 22 (TermA -> NUMBER ID .)
+    DIVIDE          reduce using rule 22 (TermA -> NUMBER ID .)
+    PLUS            reduce using rule 22 (TermA -> NUMBER ID .)
+    MINUS           reduce using rule 22 (TermA -> NUMBER ID .)
+    LE              reduce using rule 22 (TermA -> NUMBER ID .)
+    GE              reduce using rule 22 (TermA -> NUMBER ID .)
+    EQ              reduce using rule 22 (TermA -> NUMBER ID .)
+    NE              reduce using rule 22 (TermA -> NUMBER ID .)
+    LT              reduce using rule 22 (TermA -> NUMBER ID .)
+    GT              reduce using rule 22 (TermA -> NUMBER ID .)
+    RPAREN          reduce using rule 22 (TermA -> NUMBER ID .)
+    AND             reduce using rule 22 (TermA -> NUMBER ID .)
+    OR              reduce using rule 22 (TermA -> NUMBER ID .)
+    $end            reduce using rule 22 (TermA -> NUMBER ID .)
+
+
+state 35
+
+    (23) TermA -> NUMBER LPAREN . ExpA RPAREN
+    (17) ExpA -> . ExpA PLUS TermA
+    (18) ExpA -> . ExpA MINUS TermA
+    (19) ExpA -> . TermA
+    (20) TermA -> . TermA TIMES FactA
+    (21) TermA -> . TermA DIVIDE FactA
+    (22) TermA -> . NUMBER ID
+    (23) TermA -> . NUMBER LPAREN ExpA RPAREN
+    (24) TermA -> . FactA
+    (25) FactA -> . MINUS FactA
+    (26) FactA -> . LPAREN ExpA RPAREN
+    (27) FactA -> . NUMBER
+    (28) FactA -> . ID
+
+    NUMBER          shift and go to state 13
+    MINUS           shift and go to state 11
+    LPAREN          shift and go to state 32
+    ID              shift and go to state 14
+
+    ExpA                           shift and go to state 46
+    TermA                          shift and go to state 10
+    FactA                          shift and go to state 12
+
+state 36
+
+    (1) ExpB -> ExpB OR TermB .
+    (3) TermB -> TermB . AND FactB
+
+    OR              reduce using rule 1 (ExpB -> ExpB OR TermB .)
+    $end            reduce using rule 1 (ExpB -> ExpB OR TermB .)
+    RPAREN          reduce using rule 1 (ExpB -> ExpB OR TermB .)
+    AND             shift and go to state 16
+
+
+state 37
+
+    (3) TermB -> TermB AND FactB .
+
+    AND             reduce using rule 3 (TermB -> TermB AND FactB .)
+    OR              reduce using rule 3 (TermB -> TermB AND FactB .)
+    $end            reduce using rule 3 (TermB -> TermB AND FactB .)
+    RPAREN          reduce using rule 3 (TermB -> TermB AND FactB .)
+
+
+state 38
+
+    (6) FactB -> LPAREN ExpB RPAREN .
+
+    AND             reduce using rule 6 (FactB -> LPAREN ExpB RPAREN .)
+    OR              reduce using rule 6 (FactB -> LPAREN ExpB RPAREN .)
+    $end            reduce using rule 6 (FactB -> LPAREN ExpB RPAREN .)
+    RPAREN          reduce using rule 6 (FactB -> LPAREN ExpB RPAREN .)
+
+
+state 39
+
+    (26) FactA -> LPAREN ExpA RPAREN .
+
+    TIMES           reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+    DIVIDE          reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+    PLUS            reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+    MINUS           reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+    LE              reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+    GE              reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+    EQ              reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+    NE              reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+    LT              reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+    GT              reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+    RPAREN          reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+    AND             reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+    OR              reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+    $end            reduce using rule 26 (FactA -> LPAREN ExpA RPAREN .)
+
+
+state 40
+
+    (10) ExpRel -> ExpA OpRel ExpA .
+    (17) ExpA -> ExpA . PLUS TermA
+    (18) ExpA -> ExpA . MINUS TermA
+
+    AND             reduce using rule 10 (ExpRel -> ExpA OpRel ExpA .)
+    OR              reduce using rule 10 (ExpRel -> ExpA OpRel ExpA .)
+    $end            reduce using rule 10 (ExpRel -> ExpA OpRel ExpA .)
+    RPAREN          reduce using rule 10 (ExpRel -> ExpA OpRel ExpA .)
+    PLUS            shift and go to state 21
+    MINUS           shift and go to state 22
+
+
+state 41
+
+    (17) ExpA -> ExpA PLUS TermA .
+    (20) TermA -> TermA . TIMES FactA
+    (21) TermA -> TermA . DIVIDE FactA
+
+    PLUS            reduce using rule 17 (ExpA -> ExpA PLUS TermA .)
+    MINUS           reduce using rule 17 (ExpA -> ExpA PLUS TermA .)
+    LE              reduce using rule 17 (ExpA -> ExpA PLUS TermA .)
+    GE              reduce using rule 17 (ExpA -> ExpA PLUS TermA .)
+    EQ              reduce using rule 17 (ExpA -> ExpA PLUS TermA .)
+    NE              reduce using rule 17 (ExpA -> ExpA PLUS TermA .)
+    LT              reduce using rule 17 (ExpA -> ExpA PLUS TermA .)
+    GT              reduce using rule 17 (ExpA -> ExpA PLUS TermA .)
+    RPAREN          reduce using rule 17 (ExpA -> ExpA PLUS TermA .)
+    AND             reduce using rule 17 (ExpA -> ExpA PLUS TermA .)
+    OR              reduce using rule 17 (ExpA -> ExpA PLUS TermA .)
+    $end            reduce using rule 17 (ExpA -> ExpA PLUS TermA .)
+    TIMES           shift and go to state 29
+    DIVIDE          shift and go to state 30
+
+
+state 42
+
+    (18) ExpA -> ExpA MINUS TermA .
+    (20) TermA -> TermA . TIMES FactA
+    (21) TermA -> TermA . DIVIDE FactA
+
+    PLUS            reduce using rule 18 (ExpA -> ExpA MINUS TermA .)
+    MINUS           reduce using rule 18 (ExpA -> ExpA MINUS TermA .)
+    LE              reduce using rule 18 (ExpA -> ExpA MINUS TermA .)
+    GE              reduce using rule 18 (ExpA -> ExpA MINUS TermA .)
+    EQ              reduce using rule 18 (ExpA -> ExpA MINUS TermA .)
+    NE              reduce using rule 18 (ExpA -> ExpA MINUS TermA .)
+    LT              reduce using rule 18 (ExpA -> ExpA MINUS TermA .)
+    GT              reduce using rule 18 (ExpA -> ExpA MINUS TermA .)
+    RPAREN          reduce using rule 18 (ExpA -> ExpA MINUS TermA .)
+    AND             reduce using rule 18 (ExpA -> ExpA MINUS TermA .)
+    OR              reduce using rule 18 (ExpA -> ExpA MINUS TermA .)
+    $end            reduce using rule 18 (ExpA -> ExpA MINUS TermA .)
+    TIMES           shift and go to state 29
+    DIVIDE          shift and go to state 30
+
+
+state 43
+
+    (20) TermA -> TermA TIMES FactA .
+
+    TIMES           reduce using rule 20 (TermA -> TermA TIMES FactA .)
+    DIVIDE          reduce using rule 20 (TermA -> TermA TIMES FactA .)
+    PLUS            reduce using rule 20 (TermA -> TermA TIMES FactA .)
+    MINUS           reduce using rule 20 (TermA -> TermA TIMES FactA .)
+    LE              reduce using rule 20 (TermA -> TermA TIMES FactA .)
+    GE              reduce using rule 20 (TermA -> TermA TIMES FactA .)
+    EQ              reduce using rule 20 (TermA -> TermA TIMES FactA .)
+    NE              reduce using rule 20 (TermA -> TermA TIMES FactA .)
+    LT              reduce using rule 20 (TermA -> TermA TIMES FactA .)
+    GT              reduce using rule 20 (TermA -> TermA TIMES FactA .)
+    RPAREN          reduce using rule 20 (TermA -> TermA TIMES FactA .)
+    AND             reduce using rule 20 (TermA -> TermA TIMES FactA .)
+    OR              reduce using rule 20 (TermA -> TermA TIMES FactA .)
+    $end            reduce using rule 20 (TermA -> TermA TIMES FactA .)
+
+
+state 44
+
+    (21) TermA -> TermA DIVIDE FactA .
+
+    TIMES           reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+    DIVIDE          reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+    PLUS            reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+    MINUS           reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+    LE              reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+    GE              reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+    EQ              reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+    NE              reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+    LT              reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+    GT              reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+    RPAREN          reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+    AND             reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+    OR              reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+    $end            reduce using rule 21 (TermA -> TermA DIVIDE FactA .)
+
+
+state 45
+
+    (26) FactA -> LPAREN ExpA . RPAREN
+    (17) ExpA -> ExpA . PLUS TermA
+    (18) ExpA -> ExpA . MINUS TermA
+
+    RPAREN          shift and go to state 39
+    PLUS            shift and go to state 21
+    MINUS           shift and go to state 22
+
+
+state 46
+
+    (23) TermA -> NUMBER LPAREN ExpA . RPAREN
+    (17) ExpA -> ExpA . PLUS TermA
+    (18) ExpA -> ExpA . MINUS TermA
+
+    RPAREN          shift and go to state 47
+    PLUS            shift and go to state 21
+    MINUS           shift and go to state 22
+
+
+state 47
+
+    (23) TermA -> NUMBER LPAREN ExpA RPAREN .
+
+    TIMES           reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+    DIVIDE          reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+    PLUS            reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+    MINUS           reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+    LE              reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+    GE              reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+    EQ              reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+    NE              reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+    LT              reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+    GT              reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+    RPAREN          reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+    AND             reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+    OR              reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+    $end            reduce using rule 23 (TermA -> NUMBER LPAREN ExpA RPAREN .)
+

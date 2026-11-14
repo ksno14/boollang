@@ -62,7 +62,7 @@ class Negacion:
 
     def a_texto(self, con_parentesis: bool = False) -> str:
         """Representación textual de la negación, añadiendo paréntesis si su hijo es binario."""
-        if isinstance(self.op, (Conjuncion, Disyuncion)):
+        if isinstance(self.op, (Conjuncion, Disyuncion, ComparacionRel)):
             texto = f"not ({self.op.a_texto()})"
         else:
             texto = f"not {self.op.a_texto()}"
@@ -148,7 +148,198 @@ class Disyuncion:
         return self.a_texto()
 
 
-ExprBool = Union[Constante, Negacion, Conjuncion, Disyuncion]
+@dataclass(frozen=True)
+class Numero:
+    """Hoja numérica literal entera o de punto flotante (Tarea 37)."""
+
+    valor: Union[int, float]
+
+    @property
+    def nombre_op(self) -> str:
+        return "num"
+
+    @property
+    def prioridad(self) -> int:
+        return 8
+
+    def hijos(self) -> Tuple["ExprArit", ...]:
+        return ()
+
+    def a_texto(self, con_parentesis: bool = False) -> str:
+        texto = str(self.valor)
+        return f"({texto})" if con_parentesis else texto
+
+    def __str__(self) -> str:
+        return self.a_texto()
+
+
+@dataclass(frozen=True)
+class Variable:
+    """Hoja de identificador de variable algebraica, p. ej. `X`, `Y`, `Z` (Tarea 37)."""
+
+    nombre: str
+
+    @property
+    def nombre_op(self) -> str:
+        return "var"
+
+    @property
+    def prioridad(self) -> int:
+        return 8
+
+    def hijos(self) -> Tuple["ExprArit", ...]:
+        return ()
+
+    def a_texto(self, con_parentesis: bool = False) -> str:
+        return f"({self.nombre})" if con_parentesis else self.nombre
+
+    def __str__(self) -> str:
+        return self.a_texto()
+
+
+@dataclass(frozen=True)
+class UnarioArit:
+    """Operador unario aritmético `- <FactA>` (Nivel 7 de precedencia, Tarea 37)."""
+
+    op: "ExprArit"
+
+    @property
+    def nombre_op(self) -> str:
+        return "-"
+
+    @property
+    def prioridad(self) -> int:
+        return 7
+
+    def hijos(self) -> Tuple["ExprArit", ...]:
+        return (self.op,)
+
+    def a_texto(self, con_parentesis: bool = False) -> str:
+        if isinstance(self.op, BinOpArit):
+            texto = f"-({self.op.a_texto()})"
+        else:
+            texto = f"-{self.op.a_texto()}"
+        return f"({texto})" if con_parentesis else texto
+
+    def __str__(self) -> str:
+        return self.a_texto()
+
+
+@dataclass(frozen=True)
+class BinOpArit:
+    """Operador binario aritmético (`+`, `-`, `*`, `/`) explícito o implícito (Tarea 37)."""
+
+    operador: str
+    izq: "ExprArit"
+    der: "ExprArit"
+    implicita: bool = False
+
+    @property
+    def nombre_op(self) -> str:
+        return self.operador
+
+    @property
+    def prioridad(self) -> int:
+        return 6 if self.operador in ("*", "/") else 5
+
+    def hijos(self) -> Tuple["ExprArit", ...]:
+        return (self.izq, self.der)
+
+    def a_texto(self, con_parentesis: bool = False) -> str:
+        if self.implicita and self.operador == "*":
+            izq_txt = self.izq.a_texto()
+            if isinstance(self.der, Variable):
+                texto = f"{izq_txt}{self.der.a_texto()}"
+            else:
+                texto = f"{izq_txt}({self.der.a_texto()})"
+            return f"({texto})" if con_parentesis else texto
+
+        izq_txt = (
+            f"({self.izq.a_texto()})"
+            if self.izq.prioridad < self.prioridad
+            else self.izq.a_texto()
+        )
+        der_txt = (
+            f"({self.der.a_texto()})"
+            if (
+                self.der.prioridad < self.prioridad
+                or (
+                    self.der.prioridad == self.prioridad
+                    and self.operador in ("-", "/")
+                    and not getattr(self.der, "implicita", False)
+                )
+            )
+            else self.der.a_texto()
+        )
+        texto = f"{izq_txt}{self.operador}{der_txt}"
+        return f"({texto})" if con_parentesis else texto
+
+    def __str__(self) -> str:
+        return self.a_texto()
+
+
+@dataclass(frozen=True)
+class ComparacionRel:
+    """Proposición relacional `<ExpA> <OpRel> <ExpA>` (Nivel 4 de precedencia, Tarea 37)."""
+
+    operador: str
+    izq: "ExprArit"
+    der: "ExprArit"
+
+    @property
+    def nombre_op(self) -> str:
+        return self.operador
+
+    @property
+    def prioridad(self) -> int:
+        return 4
+
+    def hijos(self) -> Tuple["ExprArit", ...]:
+        return (self.izq, self.der)
+
+    def a_texto(self, con_parentesis: bool = False) -> str:
+        izq_txt = self.izq.a_texto()
+        der_txt = self.der.a_texto()
+        texto = f"{izq_txt} {self.operador} {der_txt}"
+        return f"({texto})" if con_parentesis else texto
+
+    def __str__(self) -> str:
+        return self.a_texto()
+
+
+# Alias compatible con el diagrama de arquitectura de la Tarea 37
+Relacional = ComparacionRel
+
+
+@dataclass(frozen=True)
+class Asignacion:
+    """Sentencia de asignación de variable `ID = ExpA` (Tarea 37)."""
+
+    nombre: str
+    expr: "ExprArit"
+
+    @property
+    def nombre_op(self) -> str:
+        return "="
+
+    @property
+    def prioridad(self) -> int:
+        return 0
+
+    def hijos(self) -> Tuple["ExprArit", ...]:
+        return (self.expr,)
+
+    def a_texto(self, con_parentesis: bool = False) -> str:
+        texto = f"{self.nombre} = {self.expr.a_texto()}"
+        return f"({texto})" if con_parentesis else texto
+
+    def __str__(self) -> str:
+        return self.a_texto()
+
+
+ExprArit = Union[Numero, Variable, UnarioArit, BinOpArit]
+ExprBool = Union[Constante, Negacion, Conjuncion, Disyuncion, ComparacionRel]
+NodoAST = Union[ExprBool, ExprArit, Asignacion]
 
 
 @dataclass
@@ -157,7 +348,7 @@ class Sentencia:
 
     linea: int
     texto: str
-    arbol: Optional[ExprBool] = None
+    arbol: Optional[Union[ExprBool, Asignacion]] = None
     error: Optional[str] = None
 
 
@@ -166,3 +357,4 @@ class Programa:
     """Programa completo compuesto por una secuencia ordenada de sentencias."""
 
     sentencias: list[Sentencia] = field(default_factory=list)
+
