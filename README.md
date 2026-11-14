@@ -60,6 +60,7 @@ boollang/
 │   ├── evaluador.py       # Evaluador semántico booleano y resumen
 │   ├── lexer.py           # Reglas léxicas, tokens, errores y utilidades (Integrante 1)
 │   ├── nodos.py           # Nodos del Árbol de Sintaxis Abstracta (AST) (Integrante 6)
+│   ├── parser.py          # Parser LALR(1) con ply.yacc y recuperación por línea (Integrante 3)
 │   └── traza.py           # Formateador de árbol y traza por precedencia (Integrante 6)
 ├── docs/
 │   ├── numeral1/          # Verificación formal GLC, E-BNF y parser.out (Integrante 2)
@@ -70,6 +71,7 @@ boollang/
 │   ├── test_gramatica.py  # Pruebas de verificación de la GLC (Integrante 2)
 │   ├── test_lexer.py      # Pruebas unitarias del lexer (Integrante 1)
 │   ├── test_numeral2.py   # Pruebas de derivaciones del Numeral 2 (Integrante 5)
+│   ├── test_parser.py     # Pruebas del parser LALR(1) y la recuperación de errores (Integrante 3)
 │   └── test_traza.py      # Pruebas de AST, traza de evaluación y CLI (Integrante 6)
 ├── .gitignore             # Archivos y carpetas ignorados por git
 ├── gramatica.ebnf         # Gramática oficial en notación E-BNF (Figura 2)
@@ -93,7 +95,7 @@ pip install -r requirements.txt
 
 ## Ejecución de la Suite Completa de Pruebas
 
-La suite de pruebas contiene **100 pruebas unitarias automatizadas** que cubren el lexer, gramática formal, derivaciones del Numeral 2, evaluador, AST, traza y CLI:
+La suite de pruebas contiene **161 pruebas unitarias automatizadas** que cubren el lexer, gramática formal, derivaciones del Numeral 2, parser LALR(1), evaluador, AST, traza y CLI:
 
 ```bash
 python -m pytest -v
@@ -124,6 +126,56 @@ python -m pytest tests/test_gramatica.py -v
 python docs/numeral2/derivaciones.py
 python -m pytest tests/test_numeral2.py -v
 ```
+
+---
+
+## Integrante 3: Analizador Sintáctico LALR(1) (`boollang/parser.py`)
+
+Parser LALR(1) construido con `ply.yacc`, inspirado en `pycalcyacc.py` y `calc461.y`. `boollang.archivo` lo carga automáticamente a través de `parsear_programa`. Con él, la CLI genera el archivo `.out` sin tener que inyectar un parser.
+
+**Gramática (18 reglas, 25 estados, 0 conflictos):**
+
+- **Reglas 1 a 8:** la Figura 3 transcrita tal cual, **sin tabla `precedence`**. La precedencia `not` > `and` > `or` y la asociatividad izquierda salen de la estratificación ExpB > TermB > FactB. PLY las numera igual que la figura y que `docs/numeral1/parser.out`.
+- **Reglas de programa** (`gramatica.ebnf` §2: `programa = {sentencia}, [expb]`):
+
+  ```text
+  Programa   -> Sentencias | Sentencias ExpB         (la última expresión puede no tener terminador)
+  Sentencias -> Sentencias Sentencia | <vacío>
+  Sentencia  -> ExpB NEWLINE | ExpB PUNTOYCOMA
+              | NEWLINE | PUNTOYCOMA                 (líneas vacías o solo con comentarios)
+              | error NEWLINE | error PUNTOYCOMA     (recuperación de errores)
+  ```
+
+**Recuperación de errores por línea:** ante un token inesperado se reporta el primer error de la sentencia. Después se descartan tokens hasta el siguiente `\n` o `;`, y el análisis continúa con la sentencia siguiente. La regla de error llama a `errok()` (el `yyerrok` de `calc461.y`) para que cada línea errónea se reporte. Además se corrigen dos diferencias de PLY 3.11 frente a Bison:
+
+- Si el primer token del archivo es `or`, `and` o `)`, PLY descartaría el token y aceptaría el resto de la línea. Por eso el estado 0 reduce `Sentencias -> <vacío>` por defecto, igual que en Bison.
+- Si la última línea no tiene salto de línea y contiene un error, PLY abandona el análisis en `$end`. Las sentencias se acumulan aparte para no perder las líneas anteriores.
+
+Mensajes (los del documento de la Tarea 36):
+
+```text
+[L4] (true or not false) and not or false => ERROR sintactico (col 29): token inesperado 'or'
+[L6] true and (false or true => ERROR sintactico: fin de linea inesperado, falta ')'
+```
+
+Los errores léxicos de una línea tienen prioridad sobre los sintácticos en cascada. Esa conciliación la hace `boollang.archivo`.
+
+```python
+from boollang.parser import parsear_programa
+
+for s in parsear_programa("true and false; not true\n(true or").sentencias:
+    print(s.linea, s.texto, s.arbol if s.error is None else s.error)
+# 1 true and false true and false        <- s.arbol es Conjuncion(Constante(True), Constante(False))
+# 1 not true not true                    <- s.arbol es Negacion(Constante(True))
+# 2 (true or ERROR sintactico: fin de linea inesperado, falta ')'
+```
+
+```bash
+python -m boollang ejemplo.bool -o ejemplo.out
+python -m pytest tests/test_parser.py -v
+```
+
+`tests/test_parser.py` compara de forma exhaustiva las 19 607 cadenas de hasta 5 terminales contra el conteo de árboles del Integrante 2, el parser descendente del Integrante 6 y la semántica de Python.
 
 ---
 

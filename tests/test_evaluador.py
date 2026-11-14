@@ -250,7 +250,18 @@ class TestArchivo:
         contenido_out = dst.read_text(encoding="utf-8")
         assert "[L1] not false => true" in contenido_out
 
-    def test_error_si_parser_no_esta_disponible(self):
+    def test_error_si_parser_no_esta_disponible(self, monkeypatch):
+        # `boollang.parser` ya existe (Integrante 3): se simula su ausencia.
+        import importlib
+
+        import_module_real = importlib.import_module
+
+        def sin_parser(nombre, *args, **kwargs):
+            if nombre == "boollang.parser":
+                raise ModuleNotFoundError(f"No module named {nombre!r}", name=nombre)
+            return import_module_real(nombre, *args, **kwargs)
+
+        monkeypatch.setattr(importlib, "import_module", sin_parser)
         with pytest.raises(ParserNoDisponibleError):
             procesar_texto("true\n")
 
